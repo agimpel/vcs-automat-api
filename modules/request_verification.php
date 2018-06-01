@@ -18,29 +18,30 @@ $post_data = file_get_contents('php://input');
 $signature = hash_hmac('sha512', $post_data, $secret);
 
 log_msg("\n\n=== Received request from {$_SERVER['REMOTE_ADDR']} at ".date('d.m.Y H:i:s')." ===", 3);
-header("Content-Type: text/plain");
+
 
 $data = json_decode($post_data, true);
 
+
 // check if request is signed
-if (!isset($data['HTTP_X_SIGNATURE'])) {
+if (!isset($_SERVER['HTTP_X_SIGNATURE'])) {
   log_msg('Request denied: No signature.', 2);
-  http_response_code(403)
-  die("Forbidden\n");
+  http_response_code(403);
+  exit("Forbidden\n");
 }
 
 // check if request is correctly signed
-if (!hash_equals($signature, $data['HTTP_X_SIGNATURE']) ) {
+if (!hash_equals($signature, $_SERVER['HTTP_X_SIGNATURE']) ) {
   log_msg('Request denied: Signature hash does not match.', 2);
-  http_response_code(403)
-  die("Forbidden\n");
+  http_response_code(403);
+  exit("Forbidden\n");
 }
 
 // check if request has correct fields
-if (!($data['REQUEST_METHOD'] === 'POST')) {
+if (!($_SERVER['REQUEST_METHOD'] === 'POST')) {
   log_msg('Request denied: Not a POST request.', 2);
-  http_response_code(403)
-  die("Forbidden\n");
+  http_response_code(403);
+  exit("Forbidden\n");
 }
 
 log_msg('Request accepted: All checks passed.', 2);
