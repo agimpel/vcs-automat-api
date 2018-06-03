@@ -19,10 +19,6 @@ $signature = hash_hmac('sha512', $post_data, $secret);
 
 log_msg("\n\n=== Received request from {$_SERVER['REMOTE_ADDR']} at ".date('d.m.Y H:i:s')." ===", 3);
 
-
-$data = json_decode($post_data, true);
-
-
 // check if request is signed
 if (!isset($_SERVER['HTTP_X_SIGNATURE'])) {
   log_msg('Request denied: No signature.', 2);
@@ -45,6 +41,6 @@ if (!($_SERVER['REQUEST_METHOD'] === 'POST')) {
 }
 
 log_msg('Request accepted: All checks passed.', 2);
-return $data;
+return json_decode($post_data, true);
 
 ?>
