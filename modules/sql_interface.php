@@ -67,7 +67,7 @@ class SQLhandler {
     $res = $this->SQLconn->query($query);
 
     if ($res == False) {
-      log_msg('Could not delete a user from the users table. legi = '.$legi.);
+      log_msg('Could not delete a user from the users table. legi = '.$legi);
       return False;
     }
 
@@ -75,7 +75,7 @@ class SQLhandler {
     $res = $this->SQLconn->query($query);
 
     if ($res == False) {
-      log_msg('Could not delete a user from the archive table. legi = '.$legi.);
+      log_msg('Could not delete a user from the archive table. legi = '.$legi);
       return False;
     }
 
