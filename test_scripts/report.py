@@ -14,5 +14,6 @@ req = request.Request("http://localhost/endpoints/report.php", data = data, head
 try:
     resp = request.urlopen(req)
     print(resp.read().decode('utf-8'))
+    print(resp.code)
 except Exception as e:
     print(e)

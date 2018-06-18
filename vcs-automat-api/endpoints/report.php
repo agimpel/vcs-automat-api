@@ -1,42 +1,45 @@
 <?php
 
+define('ABSPATH', 1);
+
 // set up logging file and logging function
-define('LOGFILE', '../logs/report.php.log');
 require_once('../modules/logger.php');
+$logger = Logger::instance();
+$logger->setup('endpoint_report', 'DEBUG');
 
 // perform verification of HTTP request via the HMAC-SHA512 signature and if valid, read the data
 $verified_data = require_once('../modules/request_verification.php');
-log_msg('Attempting reporting.', 2);
+$logger->debug('Attempting reporting.');
 
 
 // check if a rfid is provided in the POST data
 if (!isset($verified_data['rfid'])) {
-  log_msg('Report denied: No rfid provided.', 2);
-  http_response_code(400);
-  exit("Bad Request\n");
+	$logger->warning('Report denied: No rfid provided.');
+  	http_response_code(400);
+  	exit("Bad Request\n");
 }
 
 // check if the rfid string contains only digits
 if (preg_match('#[^0-9]#', $verified_data['rfid'])) {
-  log_msg('Report denied: Provided rfid contains non-digits.', 2);
-  http_response_code(400);
-  exit("Bad Request\n");
+	$logger->warning('Report denied: Provided rfid contains non-digits.');
+	http_response_code(400);
+	exit("Bad Request\n");
 }
 
 // check if the rfid string has the correct length
 if (strlen($verified_data['rfid']) != 6) {
-  log_msg('Report denied: Provided rfid does not have correct length.', 2);
-  http_response_code(400);
-  exit("Bad Request\n");
+	$logger->warning('Report denied: Provided rfid does not have correct length.');
+	http_response_code(400);
+	exit("Bad Request\n");
 }
 
-log_msg('Report proceeds: Provided rfid = '.$verified_data['rfid'].' passed checks.', 2);
-$rfid = $verified_data['rfid'];
-$time = time();
-if (isset($verified_data['slot']) || !preg_match('#[^0-9]#', $verified_data['slot'])) {
-  $slot = $verified_data['slot'];
-} else {
-  $slot = "-1";
+$logger->info('Report proceeds: Provided rfid = '.$verified_data['rfid'].' passed checks.');
+	$rfid = $verified_data['rfid'];
+	$time = time();
+	if (isset($verified_data['slot']) || !preg_match('#[^0-9]#', $verified_data['slot'])) {
+		$slot = $verified_data['slot'];
+	} else {
+		$slot = "-1";
 }
 
 
@@ -45,13 +48,13 @@ require_once('../modules/sql_interface.php');
 $db = new SQLhandler;
 $db_result = $db->report_rfid($rfid);
 if ($db_result == False) {
-  log_msg('Report failed: Request could not be processed.', 2);
-  http_response_code(500);
-  exit("Internal Server Error\n");
+	$logger->warning('Report failed: Request could not be processed.');
+	http_response_code(500);
+	exit("Internal Server Error\n");
 } else {
-  $legi = $db_result['legi'];
-  log_msg('Report succeeded: Request could be processed.', 2);
-  http_response_code(201);
+	$legi = $db_result['legi'];
+	$logger->warning('Report succeeded: Request could be processed.');
+	http_response_code(201);
 }
 
 $db->archive_usage($legi, $slot, $time);

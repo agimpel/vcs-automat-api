@@ -9,10 +9,11 @@ headers = {'X-SIGNATURE': hmac.new(secret, data, hashlib.sha512).hexdigest(), 'C
 
 
 
-req = request.Request("http://localhost/endpoints/auth.php", data = data, headers = headers)
+req = request.Request("http://localhost/vcs-automat-api/endpoints/auth.php", data = data, headers = headers)
 
 try:
     resp = request.urlopen(req)
     print(resp.read().decode('utf-8'))
+    print(resp.code)
 except Exception as e:
     print(e)

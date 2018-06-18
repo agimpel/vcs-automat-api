@@ -26,7 +26,7 @@ class Shortcode_Page extends VCS_Automat {
 
 
     function vcs_automat() {
-        load_template(VCS_AUTOMAT_PLUGIN_DIR . '/templates/vcs_automat_shortcode.php');
+        
 	}
 }
 
