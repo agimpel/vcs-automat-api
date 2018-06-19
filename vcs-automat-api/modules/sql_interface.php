@@ -1,7 +1,25 @@
 <?php
 
+
+// prevent this file from being executed directly
+defined('ABSPATH') or die();
+
+
+
 class SQLhandler {
 
+	// the instance of this class
+	private static $_instance = null;
+
+	// return or create the single instance of this class
+	public static function instance() {
+		if (is_null(self::$_instance)) {
+			self::$_instance = new self();
+		}
+		return self::$_instance;
+	}
+
+	
 	private $SQLconn;
 	private $users_table = "users";
 	private $archive_table = "archive";

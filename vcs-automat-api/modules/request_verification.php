@@ -1,5 +1,11 @@
 <?php
 
+
+// prevent this file from being executed directly
+defined('ABSPATH') or die();
+
+
+
 require_once('../modules/logger.php');
 $logger = Logger::instance();
 
@@ -18,7 +24,7 @@ $secret = '1234';
 $post_data = file_get_contents('php://input');
 $signature = hash_hmac('sha512', $post_data, $secret);
 
-$logger->warning("\n\n=== Received request from {$_SERVER['REMOTE_ADDR']} at ".date('d.m.Y H:i:s')." ===");
+$logger->info("Received request from {$_SERVER['REMOTE_ADDR']} at ".date('d.m.Y H:i:s'));
 
 // check if request is signed
 if (!isset($_SERVER['HTTP_X_SIGNATURE'])) {

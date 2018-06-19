@@ -30,7 +30,7 @@ class Logger {
 
 
 
-	public function setup($log, $loglevel, $dir = "/var/vcs-automat/logs") {
+	public function setup($log, $loglevel, $dir = "/opt/vcs-automat/logs") {
 
 		if (!is_dir($dir)) {
 			// file path for logs is not a directory
@@ -45,10 +45,10 @@ class Logger {
 		$log = preg_replace('/[^a-z0-9]+/', '-', strtolower($log));
 
 		try {
-			$file = fopen($this->log_dir.'/'.$log.'.log', 'w');
+			$file = fopen($this->log_dir.'/'.$log.'.log', 'a');
 			if ($file == false) {
-			// file path for this log is not usable
-			return;
+				// file path for this log is not usable
+				return;
 			}
 		} catch (Exception $e) {
 			// something went wrong upon trying to open the file
@@ -66,13 +66,16 @@ class Logger {
 		$this->log_string($msg, 'DEBUG');
 	}
 
+	
 	public function info($msg) {
 		$this->log_string($msg, 'INFO');
 	}
 
+
 	public function warning($msg) {
 		$this->log_string($msg, 'WARNING');
 	}
+
 
 	public function error($msg) {
 		$this->log_string($msg, 'ERROR');
@@ -91,30 +94,9 @@ class Logger {
 			return;
 		}
 
-
-		$trace = debug_backtrace(2, $limit = 4);
-		$function = false;
-		$class = false;
-		if (isset($trace[3])) {
-			$caller = $trace[3];
-			$function = $caller['function'];
-			if (isset($caller['class'])) {
-			$class = $caller['class'];
-			}
-		}
-		$call_info = '';
-		if ($class) {
-			$call_info = $call_info.$class.': ';
-		}
-		if ($function) {
-			$call_info = $call_info.$function;
-		}
-
-
-		$call_info = '['.$class_info.']';
 		$level = '['.$level.']';
-
-		file_put_contents($this->log, $level.$call_info." ".$msg."\n", FILE_APPEND);
+		$time = '['.gmdate('d.m.y H:i:s').' UTC]';
+		file_put_contents($this->log, $time.$level." ".$msg."\n", FILE_APPEND);
 	}
 
 

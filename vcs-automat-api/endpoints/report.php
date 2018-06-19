@@ -45,7 +45,7 @@ $logger->info('Report proceeds: Provided rfid = '.$verified_data['rfid'].' passe
 
 // check if the provided rfid is registered in the database. If not, respond with HTTP status 404, otherwise print the information about user as JSON
 require_once('../modules/sql_interface.php');
-$db = new SQLhandler;
+$db = SQLhandler::instance();
 $db_result = $db->report_rfid($rfid);
 if ($db_result == False) {
 	$logger->warning('Report failed: Request could not be processed.');

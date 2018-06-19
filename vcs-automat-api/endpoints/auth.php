@@ -39,7 +39,7 @@ $rfid = $verified_data['rfid'];
 
 // check if the provided rfid is registered in the database. If not, respond with HTTP status 404, otherwise print the information about user as JSON
 require_once('../modules/sql_interface.php');
-$db = new SQLhandler;
+$db = SQLhandler::instance();
 $db_result = $db->search_rfid($rfid);
 if ($db_result == False) {
 	$logger->warning('Auth denied: Provided rfid was unknown');
@@ -47,7 +47,7 @@ if ($db_result == False) {
 	exit("RFID unknown\n");
 } else {
 	$logger->info('Auth succeeded: Provided rfid was known.');
-
+	echo(json_encode($db_result));
 }
 
 
