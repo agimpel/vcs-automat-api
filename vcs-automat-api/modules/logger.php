@@ -32,6 +32,11 @@ class Logger {
 
 	public function setup($log, $loglevel, $dir = "/opt/vcs-automat/logs") {
 
+		if ($loglevel = 'OFF') {
+			// disable logging entirely
+			return;
+		}
+
 		if (!is_dir($dir)) {
 			// file path for logs is not a directory
 			return;
@@ -101,5 +106,4 @@ class Logger {
 
 
 }
-
 ?>

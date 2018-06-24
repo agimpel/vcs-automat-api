@@ -23,7 +23,14 @@ class SQLhandler {
 	private $SQLconn;
 	private $users_table = "users";
 	private $archive_table = "archive";
+	private $nonce_table = "nonces";
 	private $logger = null;
+	private $is_active = false;
+
+	// credentials
+	private $hash_key = '1234';
+
+
 
 	public function __construct() {
 		require_once('../modules/logger.php');
@@ -33,8 +40,8 @@ class SQLhandler {
 		$this->SQLconn = new mysqli("localhost", "vcs_automat", "password", "vcs_automat");
 		if ($this->SQLconn->connect_errno) {
 			$this->logger->error("Failed to connect to SQL database: (" . $this->SQLconn->connect_errno . ") " . $this->SQLconn->connect_error);
-			http_response_code(400);
-			exit("Bad Request\n");
+		} else {
+			$this->is_active = true;
 		}
 	}
 
@@ -153,15 +160,24 @@ class SQLhandler {
 
 	private function check_rfid($rfid) {
 		if (preg_match('#[^0-9]#', $rfid) || (strlen($rfid) != 6)) {
-			$this->logger->warning('Database access denied: Provided rfid does not fulfill constraints.', 2);
-			http_response_code(400);
-			exit("Bad Request\n");
+			$this->logger->warning('Provided rfid does not fulfill constraints.');
+			return null;
 		} else {
 			return $rfid;
 		}
 	}
 
 
+
+	private function query($string) {
+		if (!$this->is_active) {
+			// database connection was not established, dismiss
+			$this->logger->error('Database connection not established, dismissing query.');
+			return null;
+		}
+		$query = $this->SQLconn->escape_string($string);
+		return $this->SQLconn->query($query);
+	}
 
 }
 

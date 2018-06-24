@@ -50,12 +50,12 @@ class VCS_Automat {
 
 		// if the admin dashboard is displayed (does not check if user is allowed to change settings), load the settings page for the vending machine
 		if (is_admin()) {
-			include_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/plugin_options.php');
+			require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/plugin_options.php');
 			add_action('admin_menu', array($this, 'plugin_menu'));
 		}
 
 		// always load the following things for the front-end
-		include_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/shortcode_page.php');
+		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/shortcode_page.php');
 		add_shortcode('vcs_automat', array($this, 'shortcode_vcs_automat'));
 	}
 
@@ -76,13 +76,6 @@ class VCS_Automat {
 }
 
 
-
-// return the instance of the VCS_Automat class or invoke it
-function vcs_automat() {
-	return VCS_Automat::instance();
-}
-
-
 // declare the instance of the VCS_Automat class as a global
-$GLOBALS['vcs_automat'] = vcs_automat();
+$GLOBALS['vcs_automat'] = VCS_Automat::instance();
 ?>
