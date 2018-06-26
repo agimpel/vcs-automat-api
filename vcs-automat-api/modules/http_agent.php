@@ -130,7 +130,7 @@ class HTTP_Agent {
         }
 
         // request is only valid if the provided nonce has never been used before
-        $comparison_result = $sqlconn->verify($this->nonce);
+        $comparison_result = $sqlconn->verify_nonce($this->nonce);
 
         if (!$comparison_result) {
             // timestamps are not close, dismiss
