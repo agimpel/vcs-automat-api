@@ -31,8 +31,7 @@ class Logger {
 
 
 	public function setup($log, $loglevel, $dir = "/opt/vcs-automat/logs") {
-
-		if ($loglevel = 'OFF') {
+		if ($loglevel == 'OFF') {
 			// disable logging entirely
 			return;
 		}

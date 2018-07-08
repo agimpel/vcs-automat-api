@@ -7,59 +7,51 @@ require_once('../modules/logger.php');
 $logger = Logger::instance();
 $logger->setup('endpoint_report', 'DEBUG');
 
-// perform verification of HTTP request via the HMAC-SHA512 signature and if valid, read the data
-$verified_data = require_once('../modules/request_verification.php');
-$logger->debug('Attempting reporting.');
+// catch HTTP request
+require_once('../modules/http_agent.php');
+$request = new HTTP_Agent();
+$request->catch_request();
 
-
-// check if a rfid is provided in the POST data
-if (!isset($verified_data['rfid'])) {
-	$logger->warning('Report denied: No rfid provided.');
-  	http_response_code(400);
-  	exit("Bad Request\n");
+// if request is invalid based on signature, timestamp and nonce: dismiss
+if (!$request->valid_request()) {
+	$logger->info('Dismissing request based on invalidity.');
+	$response = new HTTP_Agent();
+	$response->send_response(403); //403: Forbidden
+	exit(); // Execution stops here
 }
 
-// check if the rfid string contains only digits
-if (preg_match('#[^0-9]#', $verified_data['rfid'])) {
-	$logger->warning('Report denied: Provided rfid contains non-digits.');
-	http_response_code(400);
-	exit("Bad Request\n");
+// get provided rfid and slot and check their validity
+$request_data = $request->extract_data(array('rfid', 'slot'));
+$rfid = $request_data['rfid'];
+$slot = $request_data['slot'];
+if (is_null($rfid)) {
+	$logger->error('RFID number was not provided in request.');
+	$response = new HTTP_Agent();
+	$response->send_response(400); //400: Bad Request
+	exit(); // Execution stops here
+}
+if (is_null($slot) || preg_match('#[^0-9]#', $slot)) {
+	$logger->error("Slot number ".$slot." was invalid in request.");
+	$slot = -1;
 }
 
-// check if the rfid string has the correct length
-if (strlen($verified_data['rfid']) != 6) {
-	$logger->warning('Report denied: Provided rfid does not have correct length.');
-	http_response_code(400);
-	exit("Bad Request\n");
-}
-
-$logger->info('Report proceeds: Provided rfid = '.$verified_data['rfid'].' passed checks.');
-	$rfid = $verified_data['rfid'];
-	$time = time();
-	if (isset($verified_data['slot']) || !preg_match('#[^0-9]#', $verified_data['slot'])) {
-		$slot = $verified_data['slot'];
-	} else {
-		$slot = "-1";
-}
-
-
-// check if the provided rfid is registered in the database. If not, respond with HTTP status 404, otherwise print the information about user as JSON
+// proceed with reporting of vending
+$logger->info('Report proceeds: Provided rfid = '.$rfid.' passed checks.');
 require_once('../modules/sql_interface.php');
 $db = SQLhandler::instance();
 $db_result = $db->report_rfid($rfid);
 if ($db_result == False) {
-	$logger->warning('Report failed: Request could not be processed.');
-	http_response_code(500);
-	exit("Internal Server Error\n");
+	$logger->warning('Report failed.');
+	$response = new HTTP_Agent();
+	$response->send_response(500); //500: Internal Server Error
+	exit(); // Execution stops here
 } else {
 	$legi = $db_result['legi'];
-	$logger->warning('Report succeeded: Request could be processed.');
-	http_response_code(201);
+	$logger->warning('Report succeeded.');
+	$response = new HTTP_Agent();
+	$response->send_response(201); //201: Created
+	$db->archive_usage($legi, $slot, time());
+	exit(); // Execution stops here
 }
-
-$db->archive_usage($legi, $slot, $time);
-
-
-exit();
 
 ?>

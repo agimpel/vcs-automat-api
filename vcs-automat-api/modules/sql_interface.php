@@ -169,12 +169,15 @@ class SQLhandler {
 
 
 	public function verify_nonce($nonce) {
-		$result = $this->query("SELECT 1 FROM ".$this->nonce_table." WHERE nonce = ".$nonce);
-		$result = $result->fetch_assoc();
-		
-		if ($result = null) {
+		$nonce = $this->SQLconn->real_escape_string($nonce);
+		$result = $this->SQLconn->query("SELECT * FROM ".$this->nonce_table." WHERE nonce = '$nonce'");
+
+		if (is_null($result)) {
+			$this->logger->info('No database connection.');
+			return false;
+		} elseif ($result->num_rows == 0) {
 			$this->logger->debug('Provided nonce was not yet known.');
-			$this->query("INSERT INTO ".$this->nonce_table." (nonce, timestamp) VALUES (".$nonce.", ".time().")");
+			$this->SQLconn->query("INSERT INTO ".$this->nonce_table." (nonce, timestamp) VALUES ('$nonce', ".time().")");
 			return true;
 		} else {
 			$this->logger->info('Provided nonce was already known.');
