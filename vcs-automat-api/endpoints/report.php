@@ -7,6 +7,18 @@ require_once('../modules/logger.php');
 $logger = Logger::instance();
 $logger->setup('endpoint_report', 'DEBUG');
 
+// exit if the API is disabled
+require_once('../modules/sql_interface.php');
+$db = SQLhandler::instance();
+$enabled = $db->get_setting('api_active');
+if ($enabled !== '1') {
+	$logger->info('Dismissing, API is disabled.');
+	require_once('../modules/http_agent.php');
+	$response = new HTTP_Agent();
+	$response->send_response(503); //503: Service Unavailable
+	exit(); // Execution stops here
+}
+
 // catch HTTP request
 require_once('../modules/http_agent.php');
 $request = new HTTP_Agent();
@@ -46,11 +58,11 @@ if ($db_result == False) {
 	$response->send_response(500); //500: Internal Server Error
 	exit(); // Execution stops here
 } else {
-	$legi = $db_result['legi'];
+	$uid = $db_result['uid'];
 	$logger->warning('Report succeeded.');
 	$response = new HTTP_Agent();
-	$response->send_response(201); //201: Created
-	$db->archive_usage($legi, $slot, time());
+	$response->send_response(200); //200: OK
+	$db->archive_usage($uid, $slot, time());
 	exit(); // Execution stops here
 }
 

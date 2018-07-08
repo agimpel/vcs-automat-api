@@ -40,6 +40,7 @@ class VCS_Automat {
 	// instances of sub classes
 	private $_shortcode_page_instance = null;
 	private $_plugin_options_instance = null;
+	private $logger = null;
 
 
 	// constructor: adds all hooks, actions and includes
@@ -47,6 +48,12 @@ class VCS_Automat {
 
 		// declare plugin directory as constant, without the trailing slash
 		define('VCS_AUTOMAT_PLUGIN_DIR', untrailingslashit(plugin_dir_path(__FILE__)));
+
+		// set up logging file and logging function
+		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/logger.php');
+		$this->logger = Logger::instance();
+		$this->logger->setup('wordpress', 'DEBUG');
+		$this->logger->debug('Wordpress plugin enabled.');
 
 		// if the admin dashboard is displayed (does not check if user is allowed to change settings), load the settings page for the vending machine
 		if (is_admin()) {

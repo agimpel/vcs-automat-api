@@ -7,6 +7,18 @@ require_once('../modules/logger.php');
 $logger = Logger::instance();
 $logger->setup('endpoint_auth', 'DEBUG');
 
+// exit if the API is disabled
+require_once('../modules/sql_interface.php');
+$db = SQLhandler::instance();
+$enabled = $db->get_setting('api_active');
+if ($enabled !== '1') {
+	$logger->info('Dismissing, API is disabled.');
+	require_once('../modules/http_agent.php');
+	$response = new HTTP_Agent();
+	$response->send_response(503); //503: Service Unavailable
+	exit(); // Execution stops here
+}
+
 // catch HTTP request
 require_once('../modules/http_agent.php');
 $request = new HTTP_Agent();

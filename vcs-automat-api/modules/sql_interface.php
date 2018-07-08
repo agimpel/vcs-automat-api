@@ -24,16 +24,18 @@ class SQLhandler {
 	private $users_table = "users";
 	private $archive_table = "archive";
 	private $nonce_table = "nonces";
+	private $settings_table = "settings";
 	private $logger = null;
 	private $is_active = false;
 
-	// credentials
-	private $hash_key = '1234';
-
-
+	
 
 	public function __construct() {
-		require_once('../modules/logger.php');
+		if (defined('VCS_AUTOMAT_PLUGIN_DIR')) {
+			require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/logger.php');
+		} else {
+			require_once('../modules/logger.php');
+		}
 		$this->logger = Logger::instance();
 		
 		// try to connect to the SQL database
@@ -51,9 +53,9 @@ class SQLhandler {
 
 
 	public function search_rfid($rfid) {
-		$to_fetch = array('nethz','legi','credits','rfid');
-		$query = $this->SQLconn->escape_string("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE rfid = ".$this->check_rfid($rfid));
-		$res = $this->SQLconn->query($query);
+		$to_fetch = array('uid','credits','rfid');
+		$rfid = $this->SQLconn->escape_string($rfid);
+		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE rfid = '".$rfid."'");
 		if ($res == False) {
 			$this->logger->info('Entry not found in database.');
 			return False;
@@ -63,14 +65,29 @@ class SQLhandler {
 	}
 
 
-	public function add_user($nethz, $legi, $credits, $rfid) {
-		$target_columns = array('nethz', 'legi', 'credits', 'rfid');
-		$target_data = array($nethz, $legi, $credits, $rfid);
-		$query = $this->SQLconn->escape_string("INSERT INTO ".$this->users_table." (".implode(",", $target_columns).") VALUES (".implode(",", $target_data).")");
-		$res = $this->SQLconn->query($query);
+	public function search_uid($uid) {
+		$to_fetch = array('uid','credits','rfid');
+		$uid = $this->SQLconn->escape_string($uid);
+		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE uid = '".$uid."'");
+		if ($res == False) {
+			$this->logger->info('Entry not found in database.');
+			return False;
+		} else {
+			return $res->fetch_assoc();
+		}
+	}
+
+
+	public function add_user($uid, $credits, $rfid) {
+		$target_columns = array('uid', 'credits', 'rfid');
+		$target_data = array($uid, $credits, $rfid);
+		foreach ($target_data as $key => $value) {
+			$target_data[$key] = $this->SQLconn->escape_string($value);
+		}
+		$res = $this->SQLconn->query("INSERT INTO ".$this->users_table." (".implode(",", $target_columns).") VALUES ('".implode("','", $target_data)."')");
 
 		if ($res == False) {
-			$this->logger->error('Could not add a new user. nethz = '.$nethz.', legi = '.$legi.', credits = '.$credits.', rfid = '.$rfid);
+			$this->logger->error('Could not add a new user. uid = '.$uid.', credits = '.$credits.', rfid = '.$rfid);
 			return False;
 		} else {
 			return True;
@@ -78,12 +95,13 @@ class SQLhandler {
 	}
 
 
-	public function change_rfid($legi, $new_rfid) {
-		$query = $this->SQLconn->escape_string("UPDATE ".$this->users_table." SET rfid = ".$this->check_rfid($new_rfid)." WHERE legi = ".$legi);
-		$res = $this->SQLconn->query($query);
+	public function change_rfid($uid, $new_rfid) {
+		$uid = $this->SQLconn->escape_string($uid);
+		$new_rfid = $this->SQLconn->escape_string($new_rfid);
+		$res = $this->SQLconn->query("UPDATE ".$this->users_table." SET rfid = '".$new_rfid."' WHERE uid = '".$uid."'");
 
 		if ($res == False) {
-			$this->logger->error('Could not change a RFID. legi = '.$legi.', new_rfid = '.$new_rfid);
+			$this->logger->error('Could not change a RFID. uid = '.$uid.', new_rfid = '.$new_rfid);
 			return False;
 		} else {
 			return True;
@@ -91,20 +109,19 @@ class SQLhandler {
 	}
 
 
-	public function delete_user($legi) {
-		$query = $this->SQLconn->escape_string("DELETE FROM ".$this->users_table." WHERE legi = ".$legi);
-		$res = $this->SQLconn->query($query);
+	public function delete_user($uid) {
+		$uid = $this->SQLconn->escape_string($uid);
+		$res = $this->SQLconn->query("DELETE FROM ".$this->users_table." WHERE uid = '".$uid."'");
 
 		if ($res == False) {
-			$this->logger->error('Could not delete a user from the users table. legi = '.$legi);
+			$this->logger->error('Could not delete a user from the users table. uid = '.$uid);
 			return False;
 		}
 
-		$query = $this->SQLconn->escape_string("DELETE FROM ".$this->archive_table." WHERE legi = ".$legi);
-		$res = $this->SQLconn->query($query);
+		$res = $this->SQLconn->query("DELETE FROM ".$this->archive_table." WHERE uid = '".$uid."'");
 
 		if ($res == False) {
-			$this->logger->error('Could not delete a user from the archive table. legi = '.$legi);
+			$this->logger->error('Could not delete a user from the archive table. uid = '.$uid);
 			return False;
 		}
 
@@ -112,10 +129,29 @@ class SQLhandler {
 	}
 
 
+	public function set_settings($new_settings, $settings_array) {
+		foreach ($settings_array as $key => $fields) {
+			if (isset($new_settings[$key])) {
+				$new_setting = $this->SQLconn->escape_string($new_settings[$key]);
+				$slug = $fields['slug'];
+				$res = $this->SQLconn->query("UPDATE ".$this->settings_table." SET value = '".$new_setting."' WHERE name = '".$slug."'");
+				if ($this->SQLconn->errno) {
+					$this->logger->error('CRITICAL: Setting '.$slug.' could not be updated in database. Error code: '.$this->SQLconn->errno);
+				} else {
+					$this->logger->debug('Setting '.$slug.' updated in database.');
+				}
+			} else {
+				continue;
+			}
+		}
+	}
+
+
+
 	public function report_rfid($rfid) {
-		$to_fetch = array('nethz','legi','credits','rfid');
-		$query = $this->SQLconn->escape_string("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE rfid = ".$this->check_rfid($rfid));
-		$res = $this->SQLconn->query($query);
+		$to_fetch = array('uid','credits','rfid');
+		$rfid = $this->SQLconn->escape_string($rfid);
+		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE rfid = '".$rfid."'");
 
 		if ($res == False) {
 			$this->logger->error('CRITICAL: Entry not found in database.');
@@ -125,13 +161,12 @@ class SQLhandler {
 		}
 
 		if ((int) $data['credits'] <= 0) {
-			$this->logger->error('CRITICAL: Credits equal or less than Zero. nethz = '.$data['nethz'].', legi = '.$data['legi'].', credits = '.$data['credits'].', rfid = '.$data['rfid']);
+			$this->logger->error('CRITICAL: Credits equal or less than Zero. uid = '.$data['uid'].', credits = '.$data['credits'].', rfid = '.$data['rfid']);
 			return False;
 		}
 
 		$new_credits = (int) $data['credits'] - 1;
-		$query = $this->SQLconn->escape_string("UPDATE ".$this->users_table." SET credits = ".$new_credits." WHERE rfid = ".$this->check_rfid($rfid));
-		$res = $this->SQLconn->query($query);
+		$res = $this->SQLconn->query("UPDATE ".$this->users_table." SET credits = ".$new_credits." WHERE rfid = '".$rfid."'");
 
 		if ($res == False) {
 			$this->logger->error('CRITICAL: Entry could not be updated in database.');
@@ -142,11 +177,13 @@ class SQLhandler {
 	}
 
 
-	public function archive_usage($legi, $slot, $time) {
-		$target_columns = array('legi', 'slot', 'time');
-		$target_data = array($legi, $slot, $time);
-		$query = $this->SQLconn->escape_string("INSERT INTO ".$this->archive_table." (".implode(",", $target_columns).") VALUES (".implode(",", $target_data).")");
-		$res = $this->SQLconn->query($query);
+	public function archive_usage($uid, $slot, $time) {
+		$target_columns = array('uid', 'slot', 'time');
+		$target_data = array($uid, $slot, $time);
+		foreach ($target_data as $key => $value) {
+			$target_data[$key] = $this->SQLconn->escape_string($value);
+		}
+		$res = $this->SQLconn->query("INSERT INTO ".$this->archive_table." (".implode(",", $target_columns).") VALUES ('".implode("','", $target_data)."')");
 
 		if ($res == False) {
 			$this->logger->error('Could not add a usage record.');
@@ -156,16 +193,6 @@ class SQLhandler {
 		}
 	}
 
-
-
-	private function check_rfid($rfid) {
-		if (preg_match('#[^0-9]#', $rfid) || (strlen($rfid) != 6)) {
-			$this->logger->warning('Provided rfid does not fulfill constraints.');
-			return null;
-		} else {
-			return $rfid;
-		}
-	}
 
 
 	public function verify_nonce($nonce) {
@@ -186,16 +213,19 @@ class SQLhandler {
 	}
 
 
-
-	private function query($string) {
-		if (!$this->is_active) {
-			// database connection was not established, dismiss
-			$this->logger->error('Database connection not established, dismissing query.');
+	public function get_setting($key) {
+		$key = $this->SQLconn->real_escape_string($key);
+		$result = $this->SQLconn->query("SELECT value FROM ".$this->settings_table." WHERE name = '".$key."'");
+		if (!$result || $result->num_rows == 0) {
+			$this->logger->info('Setting '.$key.' could not be fetched.');
 			return null;
+		} else {
+			$this->logger->debug('Setting '.$key.' was fetched.');
+			$value = $result->fetch_assoc();
+			return $value['value'];
 		}
-		$query = $this->SQLconn->escape_string($string);
-		return $this->SQLconn->query($query);
 	}
+
 
 }
 

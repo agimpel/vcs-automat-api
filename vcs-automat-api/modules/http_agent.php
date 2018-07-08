@@ -102,7 +102,7 @@ class HTTP_Agent {
         } else {
             $this->data_json = $data;
         }
-        $this->data_json['nonce'] = random_bytes(10).(string)time();
+        $this->data_json['nonce'] = bin2hex(random_bytes(10)).(string)time();
         $this->data_json['timestamp'] = time();
         $this->data_raw = json_encode($this->data_json);
         $this->signature = hash_hmac('sha512', $this->data_raw, $this->secret);
