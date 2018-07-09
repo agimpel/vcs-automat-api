@@ -53,7 +53,6 @@ class VCS_Automat {
 		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/logger.php');
 		$this->logger = Logger::instance();
 		$this->logger->setup('wordpress', 'DEBUG');
-		$this->logger->debug('Wordpress plugin enabled.');
 
 		// if the admin dashboard is displayed (does not check if user is allowed to change settings), load the settings page for the vending machine
 		if (is_admin()) {

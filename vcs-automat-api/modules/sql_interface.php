@@ -53,7 +53,7 @@ class SQLhandler {
 
 
 	public function search_rfid($rfid) {
-		$to_fetch = array('uid','credits','rfid');
+		$to_fetch = array('uid','credits','rfid','tracking');
 		$rfid = $this->SQLconn->escape_string($rfid);
 		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE rfid = '".$rfid."'");
 		if ($res == False) {
@@ -66,7 +66,7 @@ class SQLhandler {
 
 
 	public function search_uid($uid) {
-		$to_fetch = array('uid','credits','rfid');
+		$to_fetch = array('uid','credits','rfid','tracking');
 		$uid = $this->SQLconn->escape_string($uid);
 		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE uid = '".$uid."'");
 		if ($res == False) {
@@ -149,7 +149,7 @@ class SQLhandler {
 
 
 	public function report_rfid($rfid) {
-		$to_fetch = array('uid','credits','rfid');
+		$to_fetch = array('uid','credits','rfid','tracking');
 		$rfid = $this->SQLconn->escape_string($rfid);
 		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE rfid = '".$rfid."'");
 

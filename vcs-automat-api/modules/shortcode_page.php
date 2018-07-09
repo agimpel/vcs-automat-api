@@ -21,13 +21,15 @@ class Shortcode_Page extends VCS_Automat {
 	
 	// data of user
 	private $userdata = array(
-		'registered' => true, // is the user known to the users table
-		'uid' => 1234, // uid in database
-		'rfid' => 1234, // rfid in database
-		'credits' => 2, // remaining credits
-		'total_consumption' => 3, // total number of used credits
+		'registered' => false, // is the user known to the users table
+		'uid' => null, // uid in database
+		'rfid' => null, // rfid in database
+		'credits' => null, // remaining credits
+		'total_consumption' => null, // total number of used credits
 		'consumption_data' => array() // usage-time data
 	);
+
+	private $messageboxes = array();
 
     // constructor empty to override the parent class constructor
     public function __construct() {
@@ -40,12 +42,6 @@ class Shortcode_Page extends VCS_Automat {
 
     public function vcs_automat() {
 
-		if(!is_user_logged_in()) {
-			$this->logger->debug('User is not logged in, show login notice page.');
-			$this->show_html_notloggedin();
-			return;
-		}
-
 		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/sql_interface.php');
 		$db = SQLhandler::instance();
 		$enabled = $db->get_setting('frontend_active');
@@ -55,20 +51,57 @@ class Shortcode_Page extends VCS_Automat {
 			return;
 		}
 
+		if(isset($_GET['page']) && $_GET['page'] == 'telegrambot') {
+			$this->show_html_telegrambot();
+			return;
+		}
+
+		if(!is_user_logged_in()) {
+			$this->logger->debug('User is not logged in, show login notice page.');
+			$this->show_html_notloggedin();
+			return;
+		}
+
+
 		$this->logger->debug('Frontend is activated and user is logged in, collect data and show page.');
 		$this->prepare_data();
-		$this->show_html_active();
+
+		if(isset($_GET['page']) && $_GET['page'] == 'tracking') {
+			$this->show_html_active_tracking();
+			return;
+		}
+		
+		$this->show_html_active_main();
+		
+
+
 	}
 
 
+	private function get_uid() {
+		$user = wp_get_current_user();
+		$uid = $user->user_login;
+		return $uid;
+	}
+
 
 	private function prepare_data() {
-		$uid = get_current_user_id();
+		$uid = $this->get_uid();
+		$this->userdata['uid'] = $uid;
 		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/sql_interface.php');
 		$db = SQLhandler::instance();
-		// $result = $db->
+		$result = $db->search_uid($uid);
 
+		if($result == false) {
+			$this->logger->debug('User with UID '.$uid.' is not registered.');
+			$this->userdata['registered'] = false;
+			return;
+		}
 
+		$this->logger->debug('User with UID '.$uid.' is registered.');
+		$this->userdata['registered'] = true;
+		$this->userdata['credits'] = $result['credits'];
+		$this->userdata['rfid'] = $result['rfid'];
 
 		return;
 	}
@@ -105,8 +138,97 @@ class Shortcode_Page extends VCS_Automat {
 	}
 
 
-	private function show_html_active() {
+
+	private function set_rfid($rfid) {
+
+		if(is_null($this->userdata['uid'])) {
+			$this->logger->error('Attempted to set rfid, but uid is not set.');
+			return false;
+		}
+
+		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/sql_interface.php');
+		$db = SQLhandler::instance();
+		$result = $db->search_uid($this->userdata['uid']);
+		if(!$result) {
+			$this->logger->debug('Set rfid: uid is not known, insert into database.');
+			$standard_credits = $db->get_setting('standard_credits');
+			$result = $db->add_user($this->userdata['uid'], $standard_credits, $rfid);
+		} else {
+			$this->logger->debug('Set rfid: uid is known, update in database.');
+			$result = $db->change_rfid($this->userdata['uid'], $rfid);
+		}
+		$this->logger->debug('Submission of new rfid finished -> '.(string)$result);
+		return $result;
+	}
+
+
+	private function attach_message_box($type, $text) {
+		$this->messageboxes[] = array('type' => $type, 'text' => $text);
+	}
+
+
+	private function print_message_boxes() {
+		foreach ($this->messageboxes as $message) { ?>
+			<div class="vcs_automat-messagebox vcs_automat-messagebox-<?php echo($message['type']); ?>">
+			<?php echo($message['text']); ?>
+			<?php if($message['type'] == 'failure') { ?>
+				<br>Sollte dieser Fehler unerwartet sein, kontaktiere uns unter <a href="mailto:bierko@vcs.ethz.ch">bierko@vcs.ethz.ch</a>.
+			<?php } ?>
+			</div>
+		<?php }
+	}
+
+
+
+
+	private function show_html_telegrambot() {
+		$this->print_message_boxes();
 		$this->show_html_generic_header();
+	}
+
+
+
+	private function show_html_active_tracking() {
+
+		// process post data
+		if (isset($_POST['vcs_automat-tracking'])) {
+			$this->logger->debug('Switch of tracking setting was invoked.');
+			if (isset($_POST['vcs_automat-tracking-switch-nonce']) && wp_verify_nonce($_POST['vcs_automat-tracking-switch-nonce'], 'vcs_automat-tracking-switch')) {
+				$this->logger->debug('Nonce is valid, continue with switching of setting.');
+
+			} else {
+
+			}
+		} 
+
+		$this->print_message_boxes();
+		$this->show_html_generic_header();
+	}
+
+
+
+	private function show_html_active_main() {
+
+		// process post data
+		if (isset($_POST['vcs_automat-rfid'])) {
+			$this->logger->debug('Submitting of new rfid was invoked.');
+			if (isset($_POST['vcs_automat-set-rfid-nonce']) && wp_verify_nonce($_POST['vcs_automat-set-rfid-nonce'], 'vcs_automat-set-rfid')) {
+				$this->logger->debug('Nonce is valid, continue with submission of new rfid.');
+				if($this->set_rfid($_POST['vcs_automat-rfid'])) {
+					$this->prepare_data();
+					$this->attach_message_box('success', 'Identifikationsnummer der Legi erfolgreich geändert.');
+				} else {
+					$this->attach_message_box('failure', 'Beim Ändern der Identifikationsnummer der Legi ist ein Fehler aufgetreten.');
+				}
+			} else {
+				$this->logger->info('Nonce for submission of new rfid was invalid.');
+			}
+		} 
+
+
+		$this->print_message_boxes();
+		$this->show_html_generic_header();
+
 
 		?>
 
@@ -119,6 +241,15 @@ class Shortcode_Page extends VCS_Automat {
 			<?php } else { ?>
 				Deine Legi ist bereits für den Bierautomaten registriert. Du kannst hier aber die Identifikationsnummer deiner Legi ändern, z.B. wenn du eine neue Legi erhalten hast.
 			<?php } ?>
+
+		<form action="<?php echo($_SERVER['REQUEST_URI']); ?>" method="post">
+		<div>
+		<label for="vcs_automat-rfid">ID: </label>
+		<input type="text" name="vcs_automat-rfid" placeholder="Deine Legi-RFID"></input>
+		</div>
+		<input type="submit" name="submit" value="Registrieren"></input>
+		<?php wp_nonce_field('vcs_automat-set-rfid', 'vcs_automat-set-rfid-nonce'); ?>
+		</form>
 		</div>
 
 		<?php if ($this->userdata['registered']) { ?>

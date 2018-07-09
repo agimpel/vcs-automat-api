@@ -59,10 +59,13 @@ if ($db_result == False) {
 	exit(); // Execution stops here
 } else {
 	$uid = $db_result['uid'];
+	$tracking = $db_result['tracking'];
 	$logger->warning('Report succeeded.');
 	$response = new HTTP_Agent();
 	$response->send_response(200); //200: OK
-	$db->archive_usage($uid, $slot, time());
+	if($tracking == '1') {
+		$db->archive_usage($uid, $slot, time());
+	}
 	exit(); // Execution stops here
 }
 
