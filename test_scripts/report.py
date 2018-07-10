@@ -7,7 +7,7 @@ import os
 import binascii
 
 secret = b'1234'
-data = json.dumps({ "rfid":"000000",
+data = json.dumps({ "rfid":"123456",
                     "slot":"1",
                     "nonce":binascii.hexlify(os.urandom(10)).decode()+str(int(time.time())), 
                     "timestamp":int(time.time())}).encode('utf8')

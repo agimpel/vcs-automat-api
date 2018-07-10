@@ -63,6 +63,7 @@ class VCS_Automat {
 		// always load the following things for the front-end
 		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/shortcode_page.php');
 		add_shortcode('vcs_automat', array($this, 'shortcode_vcs_automat'));
+		add_action('parse_request', array($this, 'parse_request'));
 	}
 
 
@@ -75,6 +76,14 @@ class VCS_Automat {
 	public function shortcode_vcs_automat() {
 		$this->_shortcode_page_instance = Shortcode_Page::instance();
 		return $this->_shortcode_page_instance->vcs_automat();
+	}
+
+	public function parse_request() {
+		if(isset($_GET['download_data'])) {
+			$this->_shortcode_page_instance = Shortcode_Page::instance();
+			$this->_shortcode_page_instance->send_data_download();
+			exit;
+		}
 	}
 
 

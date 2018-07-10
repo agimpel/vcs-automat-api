@@ -109,6 +109,24 @@ class SQLhandler {
 	}
 
 
+	public function change_tracking($uid, $old_tracking) {
+		$uid = $this->SQLconn->escape_string($uid);
+		if ($old_tracking == '0') {
+			$new_tracking = '1';
+		} else {
+			$new_tracking = '0';
+		}
+		$res = $this->SQLconn->query("UPDATE ".$this->users_table." SET tracking = '".$new_tracking."' WHERE uid = '".$uid."'");
+
+		if ($res == False) {
+			$this->logger->error('Could not change a tracking preference. uid = '.$uid.', new_tracking = '.$new_tracking);
+			return False;
+		} else {
+			return True;
+		}
+	}
+
+
 	public function delete_user($uid) {
 		$uid = $this->SQLconn->escape_string($uid);
 		$res = $this->SQLconn->query("DELETE FROM ".$this->users_table." WHERE uid = '".$uid."'");
@@ -191,6 +209,32 @@ class SQLhandler {
 		} else {
 			return True;
 		}
+	}
+
+
+	public function get_archive_data($uid) {
+		$to_fetch = array('time','slot');
+		$uid = $this->SQLconn->escape_string($uid);
+		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->archive_table." WHERE uid = '".$uid."'");
+		if ($res == False) {
+			$this->logger->info('Entry not found in database.');
+			return False;
+		} else {
+			return $res->fetch_all();
+		}
+	}
+
+
+	public function delete_archive_data($uid) {
+		$uid = $this->SQLconn->escape_string($uid);
+		$res = $this->SQLconn->query("DELETE FROM ".$this->archive_table." WHERE uid = '".$uid."'");
+
+		if ($res == False) {
+			$this->logger->error('Could not delete a user from the archive table. uid = '.$uid);
+			return False;
+		}
+
+		return True;
 	}
 
 

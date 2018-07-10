@@ -23,6 +23,7 @@ class Shortcode_Page extends VCS_Automat {
 	private $userdata = array(
 		'registered' => false, // is the user known to the users table
 		'uid' => null, // uid in database
+		'tracking' => null, // is tracking for this user activated
 		'rfid' => null, // rfid in database
 		'credits' => null, // remaining credits
 		'total_consumption' => null, // total number of used credits
@@ -36,7 +37,6 @@ class Shortcode_Page extends VCS_Automat {
 		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/logger.php');
 		$this->logger = Logger::instance();
 		$this->logger->setup('wordpress', 'DEBUG');
-		$this->logger->debug('Wordpress plugin enabled.');
     }
 
 
@@ -100,6 +100,7 @@ class Shortcode_Page extends VCS_Automat {
 
 		$this->logger->debug('User with UID '.$uid.' is registered.');
 		$this->userdata['registered'] = true;
+		$this->userdata['tracking'] = $result['tracking'];
 		$this->userdata['credits'] = $result['credits'];
 		$this->userdata['rfid'] = $result['rfid'];
 
@@ -188,21 +189,105 @@ class Shortcode_Page extends VCS_Automat {
 
 
 
+
+
+	public function send_data_download() {
+		
+		if(!isset($_POST['vcs_automat-get-data-nonce']) || !wp_verify_nonce($_POST['vcs_automat-get-data-nonce'], 'vcs_automat-get-data')) {
+			$this->logger->debug('Data download requested with valid nonce.');
+			return;
+		}
+
+		$this->prepare_data();
+		if(is_null($this->userdata['uid'])) {
+			$this->logger->error('Attempted to get user data for download, but uid is not set.');
+			return;
+		}
+
+		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/sql_interface.php');
+		$db = SQLhandler::instance();
+		$result = $db->get_archive_data($this->userdata['uid']);
+
+		if(!$result) {
+			$this->logger->debug('Get user data: uid is not known in archive.');
+			return false;
+		}
+		$this->logger->debug('Get user data: uid is known, print to csv.');
+		
+		header('Content-Type: application/csv');
+		header('Content-Disposition: attachment; filename=vcs_automat_data.csv;');
+		$f = fopen('php://output', 'w');
+	
+		foreach ($result as $line) {
+			fputcsv($f, $line, ",");
+		}
+		return;
+	}
+
+
+
 	private function show_html_active_tracking() {
 
+		$this->prepare_data();
+		if(is_null($this->userdata['uid'])) {
+			$this->logger->error('Attempted to update tracking settings for user, but uid is not set.');
+			$this->attach_message_box('failure', 'Es ist ein Fehler aufgetreten: Keine Identifikationsnummer bekannt.');
+		}
+		if(is_null($this->userdata['tracking'])) {
+			$this->logger->error('Attempted to update tracking settings for user, but tracking preference is not set.');
+			$this->attach_message_box('failure', 'Es ist ein Fehler aufgetreten: Keine Präferenz bekannt.');
+		}
+
 		// process post data
-		if (isset($_POST['vcs_automat-tracking'])) {
-			$this->logger->debug('Switch of tracking setting was invoked.');
-			if (isset($_POST['vcs_automat-tracking-switch-nonce']) && wp_verify_nonce($_POST['vcs_automat-tracking-switch-nonce'], 'vcs_automat-tracking-switch')) {
-				$this->logger->debug('Nonce is valid, continue with switching of setting.');
-
+		if (isset($_POST['vcs_automat-tracking-switch-nonce']) && wp_verify_nonce($_POST['vcs_automat-tracking-switch-nonce'], 'vcs_automat-tracking-switch')) {
+			$this->logger->debug('Switch of tracking preference requested.');
+			require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/sql_interface.php');
+			$db = SQLhandler::instance();
+			if($db->change_tracking($this->userdata['uid'], $this->userdata['tracking'])) {
+				$this->prepare_data();
+				$this->attach_message_box('success', 'Einstellung für die Datenerhebung geändert.');
 			} else {
-
+				$this->attach_message_box('failure', 'Beim Ändern der Einstellung für die Datenerhebung ist ein Fehler aufgetreten.');
 			}
-		} 
+		}
+
+		if (isset($_POST['vcs_automat-deletion-nonce']) && wp_verify_nonce($_POST['vcs_automat-deletion-nonce'], 'vcs_automat-deletion')) {
+			$this->logger->debug('Switch of tracking preference requested.');
+			require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/sql_interface.php');
+			$db = SQLhandler::instance();
+			if($db->delete_archive_data($this->userdata['uid'])) {
+				$this->attach_message_box('success', 'Löschung der Nutzungsdaten erfolgreich.');
+			} else {
+				$this->attach_message_box('failure', 'Beim Löschen der Nutzungsdaten ist ein Fehler aufgetreten.');
+			}
+		}
+
 
 		$this->print_message_boxes();
 		$this->show_html_generic_header();
+
+
+		?>
+		<br><br>
+		<div id="vcs_automat-tracking-switch-title"><h2>Einstellungen für die Datenerhebung</h2></div>
+		<div id="vcs_automat-tracking-switch">
+		Durch den Bierautomaten werden die Zeit und der gewählte Schacht bei der Verwendung zusammen mit der Identifikationsnummer des Nutzers gespeichert. Dies erlaubt es, den Nutzern Statistiken zu ihrem Nutzungsverhalten zu zeigen. Die Erhebung dieser Daten kann deaktiviert werden, dadurch können jedoch keine Nutzungsstatistiken mehr dargestellt werden.<br>
+		Momentan ist die Datenerhebung für dich <?php if($this->userdata['tracking']) { ?> aktiviert. <?php } else { ?> deaktiviert. <?php } ?>		
+		<form action="<?php echo($_SERVER['REQUEST_URI']); ?>" method="post">
+			<?php wp_nonce_field('vcs_automat-tracking-switch', 'vcs_automat-tracking-switch-nonce'); ?>
+			<input type="submit" name="submit" value="Datenerhebung <?php if($this->userdata['tracking']) { echo('ausschalten'); } else { echo('einschalten'); } ?>"></input>
+		</form>
+		</div>
+		<br><br>
+		<div id="vcs_automat-tracking-deletion-title"><h2>Löschen der Nutzungsdaten</h2></div>
+		<div id="vcs_automat-tracking-deletion">
+		Die durch den Bierautomaten erhobenen Daten können vollständig gelöscht werden. Achtung: Das Löschen der Nutzungsdaten ist irreversibel.
+			<form action="<?php echo($_SERVER['REQUEST_URI']); ?>" method="post">
+				<?php wp_nonce_field('vcs_automat-deletion', 'vcs_automat-deletion-nonce'); ?>
+				<input type="submit" name="submit" value="Alle Nutzungsdaten löschen"></input>
+			</form>
+		</div>
+		<?php 
 	}
 
 
@@ -223,8 +308,7 @@ class Shortcode_Page extends VCS_Automat {
 			} else {
 				$this->logger->info('Nonce for submission of new rfid was invalid.');
 			}
-		} 
-
+		}
 
 		$this->print_message_boxes();
 		$this->show_html_generic_header();
@@ -242,20 +326,21 @@ class Shortcode_Page extends VCS_Automat {
 				Deine Legi ist bereits für den Bierautomaten registriert. Du kannst hier aber die Identifikationsnummer deiner Legi ändern, z.B. wenn du eine neue Legi erhalten hast.
 			<?php } ?>
 
-		<form action="<?php echo($_SERVER['REQUEST_URI']); ?>" method="post">
-		<div>
-		<label for="vcs_automat-rfid">ID: </label>
-		<input type="text" name="vcs_automat-rfid" placeholder="Deine Legi-RFID"></input>
-		</div>
-		<input type="submit" name="submit" value="Registrieren"></input>
-		<?php wp_nonce_field('vcs_automat-set-rfid', 'vcs_automat-set-rfid-nonce'); ?>
-		</form>
+			<form action="<?php echo($_SERVER['REQUEST_URI']); ?>" method="post">
+				<div>
+					<label for="vcs_automat-rfid">ID: </label>
+					<input type="text" name="vcs_automat-rfid" placeholder="Deine Legi-RFID"></input>
+				</div>
+				<input type="submit" name="submit" value="Registrieren"></input>
+				<?php wp_nonce_field('vcs_automat-set-rfid', 'vcs_automat-set-rfid-nonce'); ?>
+			</form>
+			
 		</div>
 
 		<?php if ($this->userdata['registered']) { ?>
 		<br><br>
 		<div id="vcs_automat-statistics-title"><h2>Statistik</h2></div>
-		<div id="vcs_automat-statistics-info">
+		<div id="vcs_automat-statistics-stats">
 			<?php if (!is_null($this->userdata['credits'])) { ?>
 				Guthaben: <?php echo($this->userdata['credits']); ?> Getränke
 				<br>
@@ -264,6 +349,14 @@ class Shortcode_Page extends VCS_Automat {
 				Gesamtkonsum: <?php echo($this->userdata['total_consumption']); ?> Getränke
 				<br>
 			<?php } ?>
+		</div>
+		<div id="vcs_automat-statistics-buttons">
+			<div class="vcs_automat-statistics-button">
+			<form action="<?php echo(add_query_arg('download_data','true')); ?>" method="post">
+				<input type="submit" name="submit" value="Nutzungsdaten herunterladen"></input><?php wp_nonce_field('vcs_automat-get-data', 'vcs_automat-get-data-nonce'); ?>
+			</form>
+			</div>
+			<div class="vcs_automat-statistics-button"><a href="<?php echo(add_query_arg('page','tracking')); ?>">Einstellungen</a></div>
 		</div>
 		<?php } ?>
 
