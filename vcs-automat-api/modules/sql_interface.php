@@ -196,8 +196,8 @@ class SQLhandler {
 
 
 	public function archive_usage($uid, $slot, $time) {
-		$target_columns = array('uid', 'slot', 'time');
-		$target_data = array($uid, $slot, $time);
+		$target_columns = array('uid', 'slot', 'unixtime', 'time');
+		$target_data = array($uid, $slot, $time, date(DATE_ATOM, $time));
 		foreach ($target_data as $key => $value) {
 			$target_data[$key] = $this->SQLconn->escape_string($value);
 		}
@@ -213,7 +213,7 @@ class SQLhandler {
 
 
 	public function get_archive_data($uid) {
-		$to_fetch = array('time','slot');
+		$to_fetch = array('unixtime', 'time', 'slot');
 		$uid = $this->SQLconn->escape_string($uid);
 		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->archive_table." WHERE uid = '".$uid."'");
 		if ($res == False) {
