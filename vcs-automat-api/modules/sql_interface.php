@@ -109,37 +109,12 @@ class SQLhandler {
 	}
 
 
-	public function change_tracking($uid, $old_tracking) {
-		$uid = $this->SQLconn->escape_string($uid);
-		if ($old_tracking == '0') {
-			$new_tracking = '1';
-		} else {
-			$new_tracking = '0';
-		}
-		$res = $this->SQLconn->query("UPDATE ".$this->users_table." SET tracking = '".$new_tracking."' WHERE uid = '".$uid."'");
-
-		if ($res == False) {
-			$this->logger->error('Could not change a tracking preference. uid = '.$uid.', new_tracking = '.$new_tracking);
-			return False;
-		} else {
-			return True;
-		}
-	}
-
-
 	public function delete_user($uid) {
 		$uid = $this->SQLconn->escape_string($uid);
 		$res = $this->SQLconn->query("DELETE FROM ".$this->users_table." WHERE uid = '".$uid."'");
 
 		if ($res == False) {
 			$this->logger->error('Could not delete a user from the users table. uid = '.$uid);
-			return False;
-		}
-
-		$res = $this->SQLconn->query("DELETE FROM ".$this->archive_table." WHERE uid = '".$uid."'");
-
-		if ($res == False) {
-			$this->logger->error('Could not delete a user from the archive table. uid = '.$uid);
 			return False;
 		}
 
@@ -167,7 +142,7 @@ class SQLhandler {
 
 
 	public function report_rfid($rfid) {
-		$to_fetch = array('uid','credits','rfid','tracking');
+		$to_fetch = array('uid','credits','rfid');
 		$rfid = $this->SQLconn->escape_string($rfid);
 		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE rfid = '".$rfid."'");
 
@@ -179,8 +154,8 @@ class SQLhandler {
 		}
 
 		if ((int) $data['credits'] <= 0) {
-			$this->logger->error('CRITICAL: Credits equal or less than Zero. uid = '.$data['uid'].', credits = '.$data['credits'].', rfid = '.$data['rfid']);
-			return False;
+			$this->logger->warning('CRITICAL: Credits equal or less than Zero. uid = '.$data['uid'].', credits = '.$data['credits'].', rfid = '.$data['rfid']);
+			$this->logger->info('This might be caused by users with preferential access.');
 		}
 
 		$new_credits = (int) $data['credits'] - 1;
@@ -195,9 +170,9 @@ class SQLhandler {
 	}
 
 
-	public function archive_usage($uid, $slot, $time) {
-		$target_columns = array('uid', 'slot', 'unixtime', 'time');
-		$target_data = array($uid, $slot, $time, date(DATE_ATOM, $time));
+	public function archive_usage($slot, $time) {
+		$target_columns = array('slot', 'unixtime', 'time');
+		$target_data = array($slot, $time, date(DATE_ATOM, $time));
 		foreach ($target_data as $key => $value) {
 			$target_data[$key] = $this->SQLconn->escape_string($value);
 		}
@@ -212,31 +187,16 @@ class SQLhandler {
 	}
 
 
-	public function get_archive_data($uid) {
+	public function get_archive_data() {
 		$to_fetch = array('unixtime', 'time', 'slot');
-		$uid = $this->SQLconn->escape_string($uid);
-		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->archive_table." WHERE uid = '".$uid."'");
+		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->archive_table);
 		if ($res == False) {
-			$this->logger->info('Entry not found in database.');
+			$this->logger->info('No entries found in database.');
 			return False;
 		} else {
 			return $res->fetch_all();
 		}
 	}
-
-
-	public function delete_archive_data($uid) {
-		$uid = $this->SQLconn->escape_string($uid);
-		$res = $this->SQLconn->query("DELETE FROM ".$this->archive_table." WHERE uid = '".$uid."'");
-
-		if ($res == False) {
-			$this->logger->error('Could not delete a user from the archive table. uid = '.$uid);
-			return False;
-		}
-
-		return True;
-	}
-
 
 
 	public function verify_nonce($nonce) {

@@ -51,6 +51,7 @@ if (is_null($slot) || preg_match('#[^0-9]#', $slot)) {
 $logger->info('Report proceeds: Provided rfid = '.$rfid.' passed checks.');
 require_once('../modules/sql_interface.php');
 $db = SQLhandler::instance();
+$db->archive_usage($slot, time());
 $db_result = $db->report_rfid($rfid);
 if ($db_result == False) {
 	$logger->warning('Report failed.');
@@ -58,14 +59,9 @@ if ($db_result == False) {
 	$response->send_response(500); //500: Internal Server Error
 	exit(); // Execution stops here
 } else {
-	$uid = $db_result['uid'];
-	$tracking = $db_result['tracking'];
 	$logger->warning('Report succeeded.');
 	$response = new HTTP_Agent();
 	$response->send_response(200); //200: OK
-	if($tracking == '1') {
-		$db->archive_usage($uid, $slot, time());
-	}
 	exit(); // Execution stops here
 }
 
