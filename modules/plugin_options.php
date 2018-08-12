@@ -158,6 +158,7 @@ class Plugin_Options extends VCS_Automat {
 		$options = $this->get_options();
 		
 		// First show the error or update messages at the head of the page.
+		settings_errors();
 		settings_errors('vcs_automat_options');
 		?>
 		<div class="wrap">
@@ -181,7 +182,7 @@ class Plugin_Options extends VCS_Automat {
 			?>
 			<?php settings_errors('vcs_automat_options_'.$key); ?>
 				<tr>
-				  <th scope="row">
+				<th scope="row">
 				<label for="vcs_automat_options[<?php echo esc_attr($key); ?>]">
 					<?php esc_html_e($title, 'vcs_automat'); ?>:
 				</label>
@@ -205,7 +206,30 @@ class Plugin_Options extends VCS_Automat {
 				</tr>
 			<?php
 				}
+				$reset_data = $this->get_resetdata();
 			?>
+			<tr>
+				<th scope="row">
+					<?php esc_html_e('Letzter Reset', 'vcs_automat'); ?>:
+				</th>
+				<td>
+					<?php esc_html_e(date("d.m.y H:i", $reset_data['last_reset'])." Uhr", 'vcs_automat'); ?>
+					<p class="description">
+					<?php esc_html_e('Zeitpunkt des letzten durchgeführten Resets der Guthaben. Resets erfolgen im Laufe einer Stunde.', 'vcs_automat'); ?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row">
+					<?php esc_html_e('Nächster Reset', 'vcs_automat'); ?>:
+				</th>
+				<td>
+					<?php esc_html_e(date("d.m.y H:i", $reset_data['next_reset'])." Uhr", 'vcs_automat'); ?>
+					<p class="description">
+					<?php esc_html_e('Zeitpunkt des nächsten Resets der Guthaben. Resets erfolgen im Laufe einer Stunde.', 'vcs_automat'); ?>
+					</p>
+				</td>
+			</tr>
 
 			</table>
 
@@ -214,6 +238,19 @@ class Plugin_Options extends VCS_Automat {
 		</form>
 		</div>
 		<?php
+	}
+
+
+
+	private function get_resetdata() {
+		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/sql_interface.php');
+		$db = SQLhandler::instance();
+		$result = array();
+		$to_fetch = array('last_reset', 'next_reset');
+		foreach ($to_fetch as $value) {
+			$result[$value] = $db->get_setting($value);
+		}
+		return $result;
 	}
 
 }

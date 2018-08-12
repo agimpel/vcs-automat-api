@@ -37,9 +37,29 @@ class SQLhandler {
 			require_once('../modules/logger.php');
 		}
 		$this->logger = Logger::instance();
+
+		// try to get the config data
+		$path = "/opt/vcs-automat-misc/server/settings.ini";
+		try {
+			$config_array = parse_ini_file($path);
+			if ($config_array == false) {
+				// file path is not usable
+				$this->logger->error("Could not open settings file at ".$path);
+				return;
+			}
+			if (!(isset($config_array["mysql_user"]) && isset($config_array["mysql_password"]))) {
+				// settings are not set
+				$this->logger->error("Relevant settings are not present in config file at ".$path);
+				return;
+			}
+		} catch (Exception $e) {
+			// something went wrong upon trying to open the file
+			$this->logger->error("Error occurred while trying to read settings file at ".$path);
+			return;
+		}
 		
 		// try to connect to the SQL database
-		$this->SQLconn = new mysqli("localhost", "vcs_automat", "password", "vcs_automat");
+		$this->SQLconn = new mysqli("localhost", $config_array["mysql_user"], $config_array["mysql_password"], "vcs_automat");
 		if ($this->SQLconn->connect_errno) {
 			$this->logger->error("Failed to connect to SQL database: (" . $this->SQLconn->connect_errno . ") " . $this->SQLconn->connect_error);
 		} else {
@@ -52,7 +72,17 @@ class SQLhandler {
 	}
 
 
+	private function connection_ready() {
+		if ($this->is_active == false) {
+			$this->logger->error("SQL function was called, but connection was not established.");
+			return False;
+		}
+		return True;
+	}
+
+
 	public function search_rfid($rfid) {
+		if (!$this->connection_ready()) return false;
 		$to_fetch = array('uid','credits','rfid','tracking');
 		$rfid = $this->SQLconn->escape_string($rfid);
 		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE rfid = '".$rfid."'");
@@ -66,6 +96,7 @@ class SQLhandler {
 
 
 	public function search_uid($uid) {
+		if (!$this->connection_ready()) return false;
 		$to_fetch = array('uid','credits','rfid','tracking');
 		$uid = $this->SQLconn->escape_string($uid);
 		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE uid = '".$uid."'");
@@ -79,6 +110,7 @@ class SQLhandler {
 
 
 	public function add_user($uid, $credits, $rfid) {
+		if (!$this->connection_ready()) return false;
 		$target_columns = array('uid', 'credits', 'rfid');
 		$target_data = array($uid, $credits, $rfid);
 		foreach ($target_data as $key => $value) {
@@ -96,6 +128,7 @@ class SQLhandler {
 
 
 	public function change_rfid($uid, $new_rfid) {
+		if (!$this->connection_ready()) return false;
 		$uid = $this->SQLconn->escape_string($uid);
 		$new_rfid = $this->SQLconn->escape_string($new_rfid);
 		$res = $this->SQLconn->query("UPDATE ".$this->users_table." SET rfid = '".$new_rfid."' WHERE uid = '".$uid."'");
@@ -110,6 +143,7 @@ class SQLhandler {
 
 
 	public function delete_user($uid) {
+		if (!$this->connection_ready()) return false;
 		$uid = $this->SQLconn->escape_string($uid);
 		$res = $this->SQLconn->query("DELETE FROM ".$this->users_table." WHERE uid = '".$uid."'");
 
@@ -123,6 +157,7 @@ class SQLhandler {
 
 
 	public function set_settings($new_settings, $settings_array) {
+		if (!$this->connection_ready()) return false;
 		foreach ($settings_array as $key => $fields) {
 			if (isset($new_settings[$key])) {
 				$new_setting = $this->SQLconn->escape_string($new_settings[$key]);
@@ -142,6 +177,7 @@ class SQLhandler {
 
 
 	public function report_rfid($rfid) {
+		if (!$this->connection_ready()) return false;
 		$to_fetch = array('uid','credits','rfid');
 		$rfid = $this->SQLconn->escape_string($rfid);
 		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE rfid = '".$rfid."'");
@@ -171,6 +207,7 @@ class SQLhandler {
 
 
 	public function archive_usage($slot, $time) {
+		if (!$this->connection_ready()) return false;
 		$target_columns = array('slot', 'unixtime', 'time');
 		$target_data = array($slot, $time, date(DATE_ATOM, $time));
 		foreach ($target_data as $key => $value) {
@@ -188,6 +225,7 @@ class SQLhandler {
 
 
 	public function get_archive_data() {
+		if (!$this->connection_ready()) return false;
 		$to_fetch = array('unixtime', 'time', 'slot');
 		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->archive_table);
 		if ($res == False) {
@@ -200,6 +238,7 @@ class SQLhandler {
 
 
 	public function verify_nonce($nonce) {
+		if (!$this->connection_ready()) return false;
 		$nonce = $this->SQLconn->real_escape_string($nonce);
 		$result = $this->SQLconn->query("SELECT * FROM ".$this->nonce_table." WHERE nonce = '$nonce'");
 
@@ -218,6 +257,7 @@ class SQLhandler {
 
 
 	public function get_setting($key) {
+		if (!$this->connection_ready()) return null;
 		$key = $this->SQLconn->real_escape_string($key);
 		$result = $this->SQLconn->query("SELECT value FROM ".$this->settings_table." WHERE name = '".$key."'");
 		if (!$result || $result->num_rows == 0) {

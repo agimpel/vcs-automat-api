@@ -63,7 +63,7 @@ class VCS_Automat {
 		// always load the following things for the front-end
 		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/shortcode_page.php');
 		add_shortcode('vcs_automat', array($this, 'shortcode_vcs_automat'));
-		add_action('parse_request', array($this, 'parse_request'));
+		add_action('wp_enqueue_scripts', array($this, 'scripts_callback'));
 	}
 
 
@@ -78,16 +78,12 @@ class VCS_Automat {
 		return $this->_shortcode_page_instance->vcs_automat();
 	}
 
-	public function parse_request() {
-		if(isset($_GET['download_data'])) {
-			$this->_shortcode_page_instance = Shortcode_Page::instance();
-			$this->_shortcode_page_instance->send_data_download();
-			exit;
-		}
+
+	public function scripts_callback() {
+		wp_register_style('vcs-automat', plugins_url('css/main.css', __FILE__));
+		wp_enqueue_style('vcs-automat');
+		wp_enqueue_style('dashicons-style', get_stylesheet_uri(), array('dashicons'), '1.0');
 	}
-
-
-
 }
 
 

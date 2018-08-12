@@ -1,0 +1,117 @@
+.vcs_automat-icon-settings {
+    padding-right: 5px;
+    cursor: pointer;
+}
+
+.vcs_automat-icon-settings:before {
+    background: none;
+    color: inherit;
+    content: "\f111";
+    display: inline;
+    font: normal 20px/20px dashicons;
+    height: 20px;
+    text-align: center;
+    width: 20px;
+}
+
+.vcs_automat-icon-telegram {
+    background: none;
+    color: inherit;
+    content: "\f101";
+    display: inline;
+    font: normal 16px/24px dashicons;
+    height: 24px;
+    text-align: center;
+    width: 20px;
+}
+
+.vcs_automat-icon-menu {
+    padding-right: 3px;
+    cursor: pointer;
+}
+
+.vcs_automat-icon-menu:before {
+    background: none;
+    color: inherit;
+    content: "\f333";
+    display: inline;
+    font: normal 20px/20px dashicons;
+    height: 20px;
+    text-align: center;
+    width: 20px;
+}
+
+
+
+
+.vcs_automat-messagebox {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 10px 10px 10px 10px;
+    position: relative;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+
+.vcs_automat-messagebox div {
+    margin-right: 40px;
+}
+
+.vcs_automat-messagebox-dismiss {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 10px;
+    color: gray;
+    cursor: pointer;
+}
+
+.vcs_automat-messagebox-dismiss:hover {
+    color: red;
+}
+
+.vcs_automat-messagebox-dismiss:before {
+    background: none;
+    color: inherit;
+    content: "\f153";
+    display: block;
+    font: normal 16px/24px dashicons;
+    height: 24px;
+    text-align: center;
+    width: 20px;
+}
+
+.vcs_automat-messagebox-failure {
+    border-left: 2px solid rgb(255, 60, 60);
+}
+
+.vcs_automat-messagebox-success {
+    border-left: 2px solid #46b450;
+}
+
+.vcs_automat-messagebox-info {
+    border-left: 2px solid orange;
+}
+
+
+
+
+#vcs_automat-statswrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    align-content: center;
+}
+
+.vcs_automat-statsentry {
+    width: 100%;
+}
+
+@media only screen and (min-width: 600px) {
+    .vcs_automat-statsentry {
+        width: 50%;
+    }
+}
+
+
