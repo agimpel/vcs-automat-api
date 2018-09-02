@@ -218,8 +218,8 @@ class Shortcode_Page extends VCS_Automat {
 	// shared navigation header of all subpages
 	private function show_html_generic_header($title) {
 		?>
-		<div id="vcs_automat-title"><h1>VCS-Automat: <?php echo($title); ?></h1></div>
-		<div id="vcs_automat-subtitle"><span class="vcs_automat-icon-menu"></span><a href="<?php echo(parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH)); ?>">zurück zur Übersicht</a></div>
+		<div class="vcs_automat-title"><h1>VCS-Automat: <?php echo($title); ?></h1></div>
+		<div class="vcs_automat-subtitle button"><a href="<?php echo(parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH)); ?>">&laquo; zurück zur Übersicht</a></div>
 		<br><br>
 		<?php
 	}
@@ -229,8 +229,8 @@ class Shortcode_Page extends VCS_Automat {
 	private function show_html_deactivated() {
 		?>
 
-		<div id="vcs_automat-title"><h1>VCS-Automat</h1></div>
-		<div id="vcs_automat-deactivated"><strong>Die Homepage für den VCS-Automaten ist momentan deaktiviert.</strong></div>
+		<div class="vcs_automat-title"><h1>VCS-Automat</h1></div>
+		<div class="vcs_automat-deactivated"><strong>Die Homepage für den VCS-Automaten ist momentan deaktiviert.</strong></div>
 
 		<?php
 	}
@@ -242,53 +242,90 @@ class Shortcode_Page extends VCS_Automat {
 		$this->prepare_userdata();
 		$this->print_message_boxes();
 		?>
-		<div id="vcs_automat-title"><h1>VCS-Automat</h1></div>
-		<div id="vcs_automat-info">
+		<div class="vcs_automat-title"><h1>VCS-Automat</h1></div>
+		<div class="vcs_automat-info">
 			Der VCS-Automat ist ein Getränkeautomat im HXE, an dem Mitglieder der VCS regelmässig mit ihrer Legi Freigetränke erhalten können. Zur Verwendung muss die Identifikationsnummer der Legi unter 'Registrierung' eingetragen werden.
 		</div>
 		<br>
-		<div id="vcs_automat-resetinfo">
+		<div class="vcs_automat-resetinfo">
 			Momentan steht alle <?php echo($this->resetdata['interval']); ?> Tage ein Guthaben von <?php echo($this->resetdata['standard_credits']); ?> <?php $this->singular_plural_format($this->resetdata['standard_credits'],'Freigetränk', 'Freigetränken'); ?> zur Verfügung. Der nächste Reset ist am <?php echo($this->resetdata['date']); ?> um <?php echo($this->resetdata['time']); ?> Uhr.
-		</div><br>
-		<?php if(!is_null($this->userdata['credits'])) { ?>
-		<div id="vcs_automat-creditsinfo">
-			Dein Restguthaben beträgt <?php echo($this->userdata['credits']); ?> <?php $this->singular_plural_format($this->userdata['credits'], 'Freigetränk', 'Freigetränke'); ?>.
-		</div><br>
-		<?php } ?>
-		<a href="<?php echo(add_query_arg('page', 'settings', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH))); ?>">Registrierung</a><br>
-		<a href="<?php echo(add_query_arg('page', 'telegrambot', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH))); ?>">Informationen zum Telegram-Bot</a><br>
-		<br><br>
-
-		<div id="vcs_automat-subtitle"><h2>Statistik</h2></div>
-		<div id="vcs_automat-statswrapper">
-		<?php
-		$this->show_html_stats();
-		?>
 		</div>
+		<br>
+		<?php if(!is_null($this->userdata['credits'])) { ?>
+		<div class="vcs_automat-creditsinfo">
+			Dein Restguthaben beträgt <?php echo($this->userdata['credits']); ?> <?php $this->singular_plural_format($this->userdata['credits'], 'Freigetränk', 'Freigetränke'); ?>.
+		</div>
+		<br>
+		<?php } ?>
+		<br>
+		<div class="vcs_automat-menuentrywrap" onclick="javascript:location.href='<?php echo(add_query_arg('page', 'settings', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH))); ?>'">
+		<span class="vcs_automat-menuentryicon"><span class="dashicons dashicons-admin-generic"></span></span>
+			<span class="vcs_automat-menuentrytext">Registrierung</span>
+		</div>
+		<br>
+		<div class="vcs_automat-menuentrywrap" onclick="javascript:location.href='<?php echo(add_query_arg('page', 'stats', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH))); ?>'">
+			<span class="vcs_automat-menuentryicon"><span class="dashicons dashicons-chart-line"></span></span>
+			<span class="vcs_automat-menuentrytext">Statistiken</span>
+		</div>
+		<br>
+		<div class="vcs_automat-menuentrywrap" onclick="javascript:location.href='<?php echo(add_query_arg('page', 'telegrambot', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH))); ?>'">
+			<span class="vcs_automat-menuentryicon"><span class="dashicons dashicons-testimonial"></span></span>
+			<span class="vcs_automat-menuentrytext">Infos zum Telegram-Bot</span>
+		</div>
+		<br><br>
+		<span>Kontakt: <a href="mailto:bierko@vcs.ethz.ch">bierko@vcs.ethz.ch</a></span>
 		<?php
 	}
 
 	private function show_html_stats() {
+		$this->print_message_boxes();
+		$this->show_html_generic_header('Statistiken');
+
 		$directory = WP_CONTENT_DIR.'/plugins/vcs-automat-api/img/';
 		if (!is_dir($directory)) {
 			$this->logger->error("Image directory could not be opened at ".$directory);
 			return;
 		}
-
 		$scanned_directory = array_diff(scandir($directory), array('..', '.','.gitignore'));
 		$default_images = array('hour.svg', 'weekday.svg');
+		?>
 
-		foreach ($scanned_directory as $key => $value) {
-			if (in_array($value, $default_images) || preg_match('/year_[0-9]{4}\.svg/i', $value)) {
-				?>
-				<div class="vcs_automat-statsentry">
-					<a href='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value); ?>' target="_blank">
-						<img src='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value); ?>'></img>
-					</a>
-				</div>
-				<?php
+		<div class="vcs_automat-stats-title"><h2>Durchschnittskonsum</h2></div>
+		<div class="vcs_automat-statswrapper">
+
+		<?php
+			foreach ($scanned_directory as $key => $value) {
+				if (in_array($value, $default_images)) {
+					?>
+					<div class="vcs_automat-statsentry">
+						<a href='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value); ?>' target="_blank">
+							<img src='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value); ?>'>
+						</a>
+					</div>
+					<?php
+				}
 			}
-		}
+		?>
+		</div>
+		<br><br>
+		<div class="vcs_automat-stats-title"><h2>Jahreskonsum</h2></div>
+		<div class="vcs_automat-statswrapper">
+
+		<?php
+			foreach ($scanned_directory as $key => $value) {
+				if (preg_match('/year_[0-9]{4}\.svg/i', $value)) {
+					?>
+					<div class="vcs_automat-statsentry">
+						<a href='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value); ?>' target="_blank">
+							<img src='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value); ?>'>
+						</a>
+					</div>
+					<?php
+				}
+			}
+		?>
+		</div>
+		<?php 
 	}
 
 
@@ -323,21 +360,23 @@ class Shortcode_Page extends VCS_Automat {
 		$this->print_message_boxes();
 		$this->show_html_generic_header('Registrierung');
 		?>
-		<div id="vcs_automat-registration-title"><h2>Legi-Identifikationsnummer</h2></div>
-		<div id="vcs_automat-registration-info">
+		<div class="vcs_automat-registration-title"><h2>Legi-Identifikationsnummer</h2></div>
+		<div class="vcs_automat-registration-info">
 			<?php if (!$this->userdata['registered']) { ?>
-				Deine Legi ist noch nicht für den Bierautomaten registriert. Hier kannst du die Identifikationsnummer deiner Legi eintragen, um den Bierautomaten verwenden zu können.
-			<?php } else { ?>
-				Deine Legi ist bereits für den Bierautomaten registriert. Du kannst hier aber die Identifikationsnummer deiner Legi ändern, z.B. wenn du eine neue Legi erhalten hast.
-			<?php } ?>
-			<br> Die Identifikationsnummer ist nicht die Leginummer, sondern die sechstellige Zahl unter dem Unterschriftfeld auf der Rückseite der Legi.
-			<br><br>
-			<form action="<?php echo($_SERVER['REQUEST_URI']); ?>" method="post">
-				<input type="text" name="vcs_automat-rfid" placeholder="Deine Legi-RFID"></input>
+				Deine Legi ist noch nicht für den Bierautomaten registriert. Hier kannst du die Identifikationsnummer deiner Legi eintragen, um den Bierautomaten verwenden zu können. Beachte, dass du deine Legi online nur einmalig registrieren kannst.
 				<br>
-				<input type="submit" name="submit" value="Registrieren"></input>
-				<?php wp_nonce_field('vcs_automat-set-rfid', 'vcs_automat-set-rfid-nonce'); ?>
-			</form>
+				Die Identifikationsnummer ist nicht die Leginummer, sondern die sechstellige Zahl unter dem Unterschriftfeld auf der Rückseite der Legi.
+				<br><br>
+				<form action="<?php echo($_SERVER['REQUEST_URI']); ?>" method="post">
+					<input type="text" name="vcs_automat-rfid" placeholder="Deine Legi-RFID">
+					<br>
+					<input type="submit" name="submit" value="Registrieren">
+					<?php wp_nonce_field('vcs_automat-set-rfid', 'vcs_automat-set-rfid-nonce'); ?>
+				</form>
+			<?php } else { ?>
+				Du bist bereits für den Bierautomaten registriert, daher kannst du deine Identifikationsnummer nicht mehr online ändern. Wenn sich deine Identifikationsnummer verändert hat, z.B. durch eine neue Legi, melde dich unter <a href="mailto:bierko@vcs.ethz.ch">bierko@vcs.ethz.ch</a>.
+			<?php } ?>
+
 		</div>
 		<?php 
 	}
@@ -348,10 +387,8 @@ class Shortcode_Page extends VCS_Automat {
 		$this->show_html_generic_header('Anmeldung');
 		?>
 		<br><br>
-		<div id="vcs_automat-notloggedin">Bitte <a href="/login/">einloggen</a>, um dich zu registrieren!</div>
-		<br>
-		<div class="button vcs_automat-notloggedin-button"><a href="/login/">Zum Login</a></div>
-
+		<div id="vcs_automat-notloggedin">Bitte <a href="/login/">einloggen</a>, um dich für den Automaten zu registrieren!</div>
+		<br><br>
 		<?php
 	}
 
@@ -359,6 +396,49 @@ class Shortcode_Page extends VCS_Automat {
 	private function show_html_telegrambot() {
 		$this->print_message_boxes();
 		$this->show_html_generic_header('Telegram-Bot');
+		?>
+		<div class="vcs_automat-telegram-title"><h2>Allgemeines</h2></div>
+		<div class="vcs_automat-telegram-info">
+			Telegram ist ein kostenloser Messaging-Dienst, der auf allen Smartphones und online verfügbar ist. Als sogenannter Telegram-Bot kann ebenfalls direkt mit dem Automaten kommuniziert werden, sodass wichtige Informationen wie das eigene Guthaben oder der Füllstand des Automaten einfach abgerufen werden können.
+			<br><br>
+			Um den Telegram-Bot zu verwenden, suche in Telegram nach <i>@VCS_BierautomatBot</i> oder öffne Telegram mit dem untenstehenden Link.
+			<br><br>
+			<div class="vcs_automat-menuentrywrap" onclick="javascript:location.href='https://telegram.me/VCS_BierautomatBot'">
+				<span class="vcs_automat-menuentryicon"><span class="dashicons dashicons-testimonial"></span></span>
+				<span class="vcs_automat-menuentrytext">Telegram-Bot öffnen</span>
+			</div>
+		</div>
+		<br><br><br>
+		<div class="vcs_automat-telegram-title"><h2>Befehle</h2></div>
+		<div class="vcs_automat-telegram-info">
+			Folgende Befehle sind verfügbar:
+			<br><br>
+			<table id="vcs_automat-telegram-commands">
+				<tr>
+					<td><i>Allgemeine Informationen anzeigen</i></td>
+					<td>Zeigt Informationen zum Reset der Guthaben, sowie den Zeitpunkt des nächsten Resets.</td>
+				</tr>
+				<tr>
+					<td><i>Guthaben überprüfen</i></td>
+					<td>Zeigt dein verbleibendes Guthaben, wenn du deine Identifikationsnummer registriert hast.</td>
+				</tr>
+				<tr>
+					<td><i>Füllstand überprüfen</i></td>
+					<td>Zeigt den momentanen Füllstand jedes Slots des Automaten an.</td>
+				</tr>
+				<tr>
+					<td><i>Problem melden</i></td>
+					<td>Sendet eine Meldung an die Verantwortlichen des Automaten.</td>
+				</tr>
+				<tr>
+					<td><i>Hilfe</i></td>
+					<td>Zeigt zusätzliche Hinweise zu allen Befehlen.</td>
+				</tr>
+			</table>
+		</div>
+
+		<?php
+		
 	}
 
 

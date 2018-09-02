@@ -1,49 +1,3 @@
-.vcs_automat-icon-settings {
-    padding-right: 5px;
-    cursor: pointer;
-}
-
-.vcs_automat-icon-settings:before {
-    background: none;
-    color: inherit;
-    content: "\f111";
-    display: inline;
-    font: normal 20px/20px dashicons;
-    height: 20px;
-    text-align: center;
-    width: 20px;
-}
-
-.vcs_automat-icon-telegram {
-    background: none;
-    color: inherit;
-    content: "\f101";
-    display: inline;
-    font: normal 16px/24px dashicons;
-    height: 24px;
-    text-align: center;
-    width: 20px;
-}
-
-.vcs_automat-icon-menu {
-    padding-right: 3px;
-    cursor: pointer;
-}
-
-.vcs_automat-icon-menu:before {
-    background: none;
-    color: inherit;
-    content: "\f333";
-    display: inline;
-    font: normal 20px/20px dashicons;
-    height: 20px;
-    text-align: center;
-    width: 20px;
-}
-
-
-
-
 .vcs_automat-messagebox {
     background-color: rgba(0, 0, 0, 0.05);
     padding: 10px 10px 10px 10px;
@@ -96,7 +50,10 @@
 
 
 
-#vcs_automat-statswrapper {
+
+
+
+.vcs_automat-statswrapper {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -106,12 +63,62 @@
 
 .vcs_automat-statsentry {
     width: 100%;
+    max-width: 600px;
 }
 
 @media only screen and (min-width: 600px) {
     .vcs_automat-statsentry {
-        width: 50%;
+        width: 100%;
+        max-width: 600px;
     }
 }
 
 
+
+
+#vcs_automat-notloggedin {
+    font-size: 120%;
+}
+
+
+
+.vcs_automat-menuentrywrap {
+    cursor: pointer;
+    display: table;
+    height: 40px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.vcs_automat-menuentryicon {
+    display: table-cell;
+    vertical-align: middle;
+    border-radius: 50%;
+    background: black;
+    color: white;
+    height: 40px;
+    text-align: center;
+    width: 40px;
+}
+
+.vcs_automat-menuentryicon span {
+    position: relative;
+    top: 0px;
+    left: -2px;
+    font-size: 25px;
+}
+
+.vcs_automat-menuentrytext {
+    padding-left: 10px;
+    text-decoration: none;
+    font-size: 120%;
+    display: table-cell;
+    vertical-align: middle;
+    text-align: left;
+}
+
+
+#vcs_automat-telegram-commands tr {
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+}
