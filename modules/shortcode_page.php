@@ -298,8 +298,8 @@ class Shortcode_Page extends VCS_Automat {
 				if (in_array($value, $default_images)) {
 					?>
 					<div class="vcs_automat-statsentry">
-						<a href='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value); ?>' target="_blank">
-							<img src='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value); ?>'>
+						<a href='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value.'?'.time()); ?>' target="_blank">
+							<img src='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value.'?'.time()); ?>'>
 						</a>
 					</div>
 					<?php
@@ -316,8 +316,8 @@ class Shortcode_Page extends VCS_Automat {
 				if (preg_match('/year_[0-9]{4}\.svg/i', $value)) {
 					?>
 					<div class="vcs_automat-statsentry">
-						<a href='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value); ?>' target="_blank">
-							<img src='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value); ?>'>
+						<a href='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value.'?'.time()); ?>' target="_blank">
+							<img src='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/'.$value.'?'.time()); ?>'>
 						</a>
 					</div>
 					<?php

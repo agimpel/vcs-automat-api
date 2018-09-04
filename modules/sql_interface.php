@@ -83,7 +83,7 @@ class SQLhandler {
 
 	public function search_rfid($rfid) {
 		if (!$this->connection_ready()) return false;
-		$to_fetch = array('uid','credits','rfid','tracking');
+		$to_fetch = array('uid','credits','rfid');
 		$rfid = $this->SQLconn->escape_string($rfid);
 		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE rfid = '".$rfid."'");
 		if ($res == False) {
@@ -97,7 +97,7 @@ class SQLhandler {
 
 	public function search_uid($uid) {
 		if (!$this->connection_ready()) return false;
-		$to_fetch = array('uid','credits','rfid','tracking');
+		$to_fetch = array('uid','credits','rfid');
 		$uid = $this->SQLconn->escape_string($uid);
 		$res = $this->SQLconn->query("SELECT ".implode(",", $to_fetch)." FROM ".$this->users_table." WHERE uid = '".$uid."'");
 		if ($res == False) {
