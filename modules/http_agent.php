@@ -9,13 +9,13 @@ defined('ABSPATH') or die();
 class HTTP_Agent {
 
     // relevant variables of this class
-    private $is_active = true; //TODO: FALSE
+    private $is_active = false;
     private $is_valid = false;
     private $logger = null;
     private $timestamp_delta = 30; //sec
     
     // credentials
-    private $secret = '1234'; //TODO: CONFIG PARSER
+    private $secret = null;
 
     // data of HTTP request
     private $data_raw = null;
@@ -30,6 +30,31 @@ class HTTP_Agent {
         // set up of logging
         require_once('../modules/logger.php');
         $this->logger = Logger::instance();
+
+		// try to get the config data
+		$path = "/opt/vcs-automat-misc/server/settings.ini";
+		try {
+			$config_array = parse_ini_file($path);
+			if ($config_array == false) {
+				// file path is not usable
+				$this->logger->error("Could not open settings file at ".$path);
+				return;
+			}
+			if (!isset($config_array["hmac_secret"])) {
+				// settings are not set
+                $this->logger->error("Relevant settings are not present in config file at ".$path);
+                $this->is_active = false;
+				return;
+			} else {
+                $this->secret = $config_array["hmac_secret"];
+                $this->is_active = true;
+            }
+		} catch (Exception $e) {
+			// something went wrong upon trying to open the file
+            $this->logger->error("Error occurred while trying to read settings file at ".$path);
+            $this->is_active = false;
+			return;
+		}
     }
 
 

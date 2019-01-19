@@ -78,11 +78,18 @@ class Shortcode_Page extends VCS_Automat {
 			return;
 		}
 
-		// display page with settings, this page is restricted to logged-in users
+		// display page with settings, this page is restricted to logged-in users affiliated with VCS
 		if(isset($_GET['page']) && $_GET['page'] == 'settings') {
 			if(!is_user_logged_in()) {
 				$this->logger->debug('User is not logged in, show login notice page.');
 				$this->show_html_notloggedin();
+				return;
+			} 
+			require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/affiliation_api.php');
+			$api = Affiliation_API::instance();
+			$is_affiliated = $api->is_affiliated($this->get_uid());
+			if(!$is_affiliated) {
+				$this->show_html_notaffiliated();
 			} else {
 				$this->show_html_settings();
 			}
@@ -388,6 +395,16 @@ class Shortcode_Page extends VCS_Automat {
 		?>
 		<br><br>
 		<div id="vcs_automat-notloggedin">Bitte <a href="/login/">einloggen</a>, um dich für den Automaten zu registrieren!</div>
+		<br><br>
+		<?php
+	}
+
+	// notaffiliated page: shown if the settings page is accessed, but the user is not affiliated to VCS
+	private function show_html_notaffiliated() {
+		$this->show_html_generic_header('Anmeldung');
+		?>
+		<br><br>
+		<div id="vcs_automat-notaffiliated">Registrierung ist nur für VCS-Mitglieder möglich!</div>
 		<br><br>
 		<?php
 	}
