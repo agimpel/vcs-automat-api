@@ -162,9 +162,9 @@ class Shortcode_Page extends VCS_Automat {
 			return false;
 		}
 
-		if(preg_match('/[^a-z0-9]/i', $rfid)) {
+		if(preg_match('/[^0-9]/i', $rfid)) {
 			$this->logger->debug('Provided rfid failed regex validation.');
-			$this->attach_message_box('info', 'Die Identifikationsnummer darf nur alphanumerische Zeichen enthalten.');
+			$this->attach_message_box('info', 'Die Identifikationsnummer darf nur numerische Zeichen enthalten.');
 			return false;
 		}
 
