@@ -132,7 +132,6 @@ class SQLhandler {
 		$uid = $this->SQLconn->escape_string($uid);
 		$new_rfid = $this->SQLconn->escape_string($new_rfid);
 		$res = $this->SQLconn->query("UPDATE ".$this->users_table." SET rfid = '".$new_rfid."' WHERE uid = '".$uid."'");
-
 		if ($res == False) {
 			$this->logger->error('Could not change a RFID. uid = '.$uid.', new_rfid = '.$new_rfid);
 			return False;

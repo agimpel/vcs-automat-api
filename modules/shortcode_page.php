@@ -49,7 +49,7 @@ class Shortcode_Page extends VCS_Automat {
     public function __construct() {
 		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/logger.php');
 		$this->logger = Logger::instance();
-		$this->logger->setup('wordpress', 'DEBUG');
+		$this->logger->setup('wordpress', 'INFO');
     }
 
 
@@ -162,9 +162,16 @@ class Shortcode_Page extends VCS_Automat {
 			return false;
 		}
 
+
+		if(strlen($rfid) != 6) {
+			$this->logger->debug('Provided rfid has an incorrect length of '.strlen($rfid).' characters.');
+			$this->attach_message_box('info', 'Bitte gebe die sechsstellige Identifikationsnummer auf der Rückseite der Legi an.');
+			return false;
+		}
+
 		if(preg_match('/[^0-9]/i', $rfid)) {
 			$this->logger->debug('Provided rfid failed regex validation.');
-			$this->attach_message_box('info', 'Die Identifikationsnummer darf nur numerische Zeichen enthalten.');
+			$this->attach_message_box('info', 'Die Identifikationsnummer kann nur numerische Zeichen enthalten.');
 			return false;
 		}
 
@@ -368,6 +375,13 @@ class Shortcode_Page extends VCS_Automat {
 		$this->show_html_generic_header('Registrierung');
 		?>
 		<div class="vcs_automat-registration-title"><h2>Legi-Identifikationsnummer</h2></div>
+		<table id="vcs_automat-legi-info">
+				<tr>
+					<td>Die Legi-Identifikationsnummer ist die sechstellige Nummer auf der Rückseite deiner Legi, siehe die Beispiellegi auf dem Bild. Es ist nicht deine eigentliche Leginummer!</td>
+					<td><img src='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/legi.jpg'); ?>'></td>
+				</tr>
+			</table>
+			<br><br>
 		<div class="vcs_automat-registration-info">
 			<?php if (!$this->userdata['registered']) { ?>
 				Deine Legi ist noch nicht für den Bierautomaten registriert. Hier kannst du die Identifikationsnummer deiner Legi eintragen, um den Bierautomaten verwenden zu können. Beachte, dass du deine Legi online nur einmalig registrieren kannst.
@@ -381,7 +395,7 @@ class Shortcode_Page extends VCS_Automat {
 					<?php wp_nonce_field('vcs_automat-set-rfid', 'vcs_automat-set-rfid-nonce'); ?>
 				</form>
 			<?php } else { ?>
-				Du bist bereits für den Bierautomaten registriert, daher kannst du deine Identifikationsnummer nicht mehr online ändern. Wenn sich deine Identifikationsnummer verändert hat, z.B. durch eine neue Legi, melde dich unter <a href="mailto:bierko@vcs.ethz.ch">bierko@vcs.ethz.ch</a>.
+				Du bist bereits für den Bierautomaten registriert, daher kannst du deine Identifikationsnummer nicht mehr online ändern. Wenn sich deine Identifikationsnummer verändert hat, z.B. durch eine neue Legi, melde dich unter <a href="mailto:bierko@vcs.ethz.ch">bierko@vcs.ethz.ch</a> mit deinem nethz-Kürzel und deiner neuen Identifikationsnummer.
 			<?php } ?>
 
 		</div>

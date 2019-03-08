@@ -3,10 +3,12 @@
 /*
 Plugin Name:  VCS Automat API
 Plugin URI:   https://github.com/agimpel/vcs-automat-api
+GitHub Plugin URI: agimpel/vcs-automat-api
+GitHub Plugin URI: https://github.com/agimpel/vcs-automat-api
 Description:  API für den Automaten der VCS.
-Version:      0.1
+Version:      1.0
 Author:       Andreas Gimpel
-Author URI:   mailto:agimpel@student.ethz.ch
+Author URI:   mailto:andreas.gimpel@agimpel.com
 License:      MIT
 License URI:  https://directory.fsf.org/wiki/License:Expat
 */
@@ -52,7 +54,7 @@ class VCS_Automat {
 		// set up logging file and logging function
 		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/logger.php');
 		$this->logger = Logger::instance();
-		$this->logger->setup('wordpress', 'DEBUG');
+		$this->logger->setup('wordpress', 'INFO');
 
 		// if the admin dashboard is displayed (does not check if user is allowed to change settings), load the settings page for the vending machine
 		if (is_admin()) {

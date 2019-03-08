@@ -60,7 +60,7 @@ class HTTP_Agent {
 
     public function catch_request() {
         
-        $this->logger->info("Received request from {$_SERVER['REMOTE_ADDR']}.");
+        $this->logger->debug("Received request from {$_SERVER['REMOTE_ADDR']}.");
 
         // collect data
         $this->data_raw = file_get_contents('php://input');
@@ -119,7 +119,7 @@ class HTTP_Agent {
 
 
     public function send_response($code, $data = array()) {
-        $this->logger->info('Responding with status code '.$code.'.');
+        $this->logger->debug('Responding with status code '.$code.'.');
 
         if (!is_array($data)) {
             $this->logger->error('Provided data is not an array.');
@@ -148,7 +148,7 @@ class HTTP_Agent {
     private function verify_signature() {
         if (!$this->is_active) {
             // secret has not been set up, dismiss
-            $this->logger->info('Dismissing request, as secret is not set up.');
+            $this->logger->warning('Dismissing request, as secret is not set up.');
             return false;
         }
         if (is_null($this->signature)) {
@@ -163,7 +163,7 @@ class HTTP_Agent {
 
         if (!$comparison_result) {
             // signatures are not equal, dismiss
-            $this->logger->warning('Dismissing request, as provided signature was invalid.');
+            $this->logger->info('Dismissing request, as provided signature was invalid.');
             return false;
         } else {
             // signatures are equal, go ahead
@@ -192,7 +192,7 @@ class HTTP_Agent {
 
         if (!$comparison_result) {
             // timestamps are not close, dismiss
-            $this->logger->warning('Dismissing request, as provided timestamp was inaccurate.');
+            $this->logger->info('Dismissing request, as provided timestamp was inaccurate.');
             return false;
         } else {
             // timestamps are close, go ahead
@@ -221,7 +221,7 @@ class HTTP_Agent {
 
         if (!$comparison_result) {
             // nonce was used before, dismiss
-            $this->logger->warning('Dismissing request, as provided nonce was already known.');
+            $this->logger->info('Dismissing request, as provided nonce was already known.');
             return false;
         } else {
             // none is new, go ahead
