@@ -4,8 +4,7 @@
 // prevent this file from being executed directly
 defined('ABSPATH') or die();
 
-
-
+// This class handles the authentication of users against the LDAP, allowing filtering based on student organization affiliation
 class Affiliation_API {
 
 	// the instance of this class
@@ -19,14 +18,13 @@ class Affiliation_API {
 		return self::$_instance;
 	}
 
-	
+	// will be read from config file
     private $api_url = null;
     private $api_key = null;
 	private $logger = null;
 
-	
-
 	public function __construct() {
+		// set up logger
 		if (defined('VCS_AUTOMAT_PLUGIN_DIR')) {
 			require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/logger.php');
 		} else {
@@ -58,7 +56,7 @@ class Affiliation_API {
 		}
 	}
 
-
+	// send get request to query user's affiliation. If not affiliated, will return 404 error code, json data about user otherwise
     private function get_request($url) {
         
         $this->logger->debug("Posting GET request to {$url}.");
@@ -78,7 +76,7 @@ class Affiliation_API {
         return json_decode($response_body, true);
     }
 
-
+	// public front end function to wrap the get request to the API. Returns either true or false based on affiliation of the user identified by the UID $uid.
     public function is_affiliated($uid) {
         
         $this->logger->debug("Checking affiliation of {$uid}.");
@@ -93,9 +91,5 @@ class Affiliation_API {
         $this->logger->debug("UID {$uid} is not affiliated.");
         return false;
     }
-
 }
-
-
-
 ?>

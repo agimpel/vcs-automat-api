@@ -375,12 +375,8 @@ class Shortcode_Page extends VCS_Automat {
 		$this->show_html_generic_header('Registrierung');
 		?>
 		<div class="vcs_automat-registration-title"><h2>Legi-Identifikationsnummer</h2></div>
-		<table id="vcs_automat-legi-info">
-				<tr>
-					<td>Die Legi-Identifikationsnummer ist die sechstellige Nummer auf der Rückseite deiner Legi, siehe die Beispiellegi auf dem Bild. Es ist nicht deine eigentliche Leginummer!</td>
-					<td><img src='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/legi.jpg'); ?>'></td>
-				</tr>
-			</table>
+			Die Legi-Identifikationsnummer ist die sechstellige Nummer auf der Rückseite deiner Legi, siehe die Beispiellegi auf dem Bild.<br>Es ist nicht deine eigentliche Leginummer!<br><br>
+			<img src='<?php echo(WP_PLUGIN_URL.'/vcs-automat-api/img/legi.jpg'); ?>'>
 			<br><br>
 		<div class="vcs_automat-registration-info">
 			<?php if (!$this->userdata['registered']) { ?>
@@ -468,19 +464,7 @@ class Shortcode_Page extends VCS_Automat {
 			</table>
 		</div>
 
-		<?php
-		
+		<?php	
 	}
-
-
-
-
-
 }
-
-
-
-
-
-
 ?>

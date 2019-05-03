@@ -13,15 +13,8 @@ License:      MIT
 License URI:  https://directory.fsf.org/wiki/License:Expat
 */
 
-
-
-
 // prevent this file from being executed directly
 defined('ABSPATH') or die();
-
-
-
-
 
 
 

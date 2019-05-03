@@ -4,8 +4,7 @@
 // prevent this file from being executed directly
 defined('ABSPATH') or die();
 
-
-
+// This class handles all HTTP information transfer not related to the Wordpress frontend, e.g. catching and responding to GET and POST queries to the Automat API.
 class HTTP_Agent {
 
     // relevant variables of this class
@@ -14,7 +13,7 @@ class HTTP_Agent {
     private $logger = null;
     private $timestamp_delta = 30; //sec
     
-    // credentials
+    // credentials, will be read from config
     private $secret = null;
 
     // data of HTTP request
@@ -24,8 +23,6 @@ class HTTP_Agent {
     private $timestamp = null;
     private $nonce = null;
     
-
-
     public function __construct() {
         // set up of logging
         require_once('../modules/logger.php');
@@ -57,7 +54,7 @@ class HTTP_Agent {
 		}
     }
 
-
+    // receives the raw data of the POST request to the Automat API and processes its json body
     public function catch_request() {
         
         $this->logger->debug("Received request from {$_SERVER['REMOTE_ADDR']}.");
@@ -83,7 +80,7 @@ class HTTP_Agent {
         
     }
 
-
+    // frontend wrapping the validation of the POST request based on the HMAC signature, the timestamp and the nonce. Returns either true or false based on request validity.
     public function valid_request() {
 
         $this->logger->debug('Validating request.');
@@ -99,7 +96,7 @@ class HTTP_Agent {
         }
     }
 
-
+    // frontend performing the extraction of the indices present in array $keys from the json data of the POST request. Returns the queried data as string array.
     public function extract_data($keys) {
         if (!$this->is_valid) {
             $this->logger->error('Request is not validated. Dismissing.');
@@ -117,7 +114,7 @@ class HTTP_Agent {
         return $extracted_data;
     }
 
-
+    // frontend wrapping the response of the webserver to a HTTP request with HTTP code $code and optional data $data as array. Performs the validation of the response by adding nonce, timestamp and the HMAC signature.
     public function send_response($code, $data = array()) {
         $this->logger->debug('Responding with status code '.$code.'.');
 
@@ -141,10 +138,10 @@ class HTTP_Agent {
         header("Content-Type:application/json");
         header("X-SIGNATURE:".$this->signature);
         http_response_code($code);
-        echo($this->data_raw);
+        echo($this->data_raw); // print json encoded data
     }
 
-
+    // performs the validation of the HMAC signature of a request. HMAC is based on the raw body data of the request, using SHA-512 as hashing algorithm. Returns true only if the HMAC secret is set up, a signature exists and the locally determined signature matches the request header's signature; false otherwise.
     private function verify_signature() {
         if (!$this->is_active) {
             // secret has not been set up, dismiss
@@ -159,7 +156,7 @@ class HTTP_Agent {
 
         // request is only valid if the provided signature matches the hash as calculated by the server
         $target_signature = hash_hmac('sha512', $this->data_raw, $this->secret);
-        $comparison_result = hash_equals($target_signature, $this->signature);
+        $comparison_result = hash_equals($target_signature, $this->signature); // hash_equals instead of == as the latter is prone to timing attacks
 
         if (!$comparison_result) {
             // signatures are not equal, dismiss
@@ -172,8 +169,7 @@ class HTTP_Agent {
         }
     }
 
-
-
+    // performs the validation of the timestamp of a request. The signature has a tolerance specified by $this->timestamp_delta between the time indicated in the body of the request and the time reported by PHP during fetching of the HTTP request. As the timestamp is in the body and thus affecting the signature, this effectively limits replay attacks to the timeframe specified by the time tolerance. However, the use of nonces renders this verification step superfluous.
     private function verify_timestamp() {
         if (is_null($this->timestamp)) {
             // request does not have a signature, dismiss
@@ -181,7 +177,7 @@ class HTTP_Agent {
             return false;
         }
         if (!isset($_SERVER['REQUEST_TIME'])) {
-            // secret has not been set up, dismiss
+            // request time has not been set up, dismiss
             $this->logger->info('Dismissing request, as php provides no request time.');
             return false;
         }
