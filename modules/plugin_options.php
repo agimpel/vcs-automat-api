@@ -46,7 +46,14 @@ class Plugin_Options extends VCS_Automat {
 			'formtype' => 'number', 
 			'default' => 7, 
 			'title' => 'Reset Zeitintervall', 
-			'description' => 'Anzahl der Tage für das Resetintervall.')
+			'description' => 'Anzahl der Tage für das Resetintervall.'),
+		'vcs_automat_next_reset' => array(
+			'slug' => 'next_reset',
+			'datatype' => 'date', 
+			'formtype' => 'datetime-local', 
+			'default' => 0, 
+			'title' => 'Reset', 
+			'description' => 'Zeitpunkt des nächsten Resets festlegen.')
 	);
 
 	// all settings with their types and defaults for the rfid submenu
@@ -170,6 +177,18 @@ class Plugin_Options extends VCS_Automat {
 						}
 						break;
 
+					case 'date':
+						if ($new_setting == '') {
+							break;
+						}
+						$date = strtotime($new_setting);
+						if ($date) {
+							$output[$key] = (int) $date;
+						} else {
+							add_settings_error('vcs_automat_options_'.$key, $key, __($fields['title'] . ': This field must be a datetime.', 'vcs_automat'));
+						}
+						break;
+
 					default:
 						add_settings_error('vcs_automat_options_'.$key, $key, __($fields['title'] . ': This datatype is unknown.', 'vcs_automat'));
 						break;
@@ -211,6 +230,9 @@ class Plugin_Options extends VCS_Automat {
 						$checked = "checked='checked'";
 					} else {
 						$checked = "";
+					}
+					if ($formtype == 'datetime-local') {
+						$value = date("Y-m-d\TH:i:s", $value);
 					}
 			?>
 			<?php settings_errors('vcs_automat_options_'.$key); ?>
