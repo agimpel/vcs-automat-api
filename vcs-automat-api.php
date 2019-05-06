@@ -6,7 +6,7 @@ Plugin URI:   https://github.com/agimpel/vcs-automat-api
 GitHub Plugin URI: agimpel/vcs-automat-api
 GitHub Plugin URI: https://github.com/agimpel/vcs-automat-api
 Description:  API für den Automaten der VCS.
-Version:      1.0
+Version:      1.1
 Author:       Andreas Gimpel
 Author URI:   mailto:andreas.gimpel@agimpel.com
 License:      MIT
@@ -16,8 +16,7 @@ License URI:  https://directory.fsf.org/wiki/License:Expat
 // prevent this file from being executed directly
 defined('ABSPATH') or die();
 
-
-
+// This class is the main instance of the plugin and handles its entire setup
 class VCS_Automat {
 
 	// the instance of this class
@@ -31,12 +30,10 @@ class VCS_Automat {
 		return self::$_instance;
 	}
 
-
 	// instances of sub classes
 	private $_shortcode_page_instance = null;
 	private $_plugin_options_instance = null;
 	private $logger = null;
-
 
 	// constructor: adds all hooks, actions and includes
 	public function __construct() {
@@ -61,26 +58,25 @@ class VCS_Automat {
 		add_action('wp_enqueue_scripts', array($this, 'scripts_callback'));
 	}
 
-
+	// registers the plugin menu in the admin panel
 	public function plugin_menu() {
 		$this->_plugin_options_instance = Plugin_Options::instance();
 		$this->_plugin_options_instance->main();
 	}
 
-
+	// registers the shortcode page for public access
 	public function shortcode_vcs_automat() {
 		$this->_shortcode_page_instance = Shortcode_Page::instance();
 		return $this->_shortcode_page_instance->vcs_automat();
 	}
 
-
+	// registers the script files needed for the plugin
 	public function scripts_callback() {
 		wp_register_style('vcs-automat', plugins_url('css/main.css', __FILE__));
 		wp_enqueue_style('vcs-automat');
 		wp_enqueue_style('dashicons-style', get_stylesheet_uri(), array('dashicons'), '1.0');
 	}
 }
-
 
 // declare the instance of the VCS_Automat class as a global
 $GLOBALS['vcs_automat'] = VCS_Automat::instance();

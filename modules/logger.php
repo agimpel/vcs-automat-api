@@ -1,11 +1,9 @@
 <?php
 
-
 // prevent this file from being executed directly
 defined('ABSPATH') or die();
 
-
-
+// This class handles all the logging to local log files
 class Logger {
 
 	// the instance of this class
@@ -19,7 +17,6 @@ class Logger {
 		return self::$_instance;
 	}
 
-
 	// relevant class variables
 	private $is_active = false;
 	private $log_dir = null;
@@ -27,9 +24,7 @@ class Logger {
 	private $possible_loglevels = array('ERROR' => 1, 'WARNING' => 2, 'INFO' => 3, 'DEBUG' => 4);
 	private $loglevel = 'DEBUG'; //default
 
-
-
-
+	// Sets up file and loglevel for this logger instance
 	public function setup($log, $loglevel, $dir = "/opt/vcs-automat-misc/server/logs") {
 		if ($loglevel == 'OFF') {
 			// disable logging entirely
@@ -64,28 +59,27 @@ class Logger {
 		$this->is_active = true;
 	}
 
-
-
+	// Log using DEBUG level
 	public function debug($msg) {
 		$this->log_string($msg, 'DEBUG');
 	}
 
-	
+	// Log using INFO level
 	public function info($msg) {
 		$this->log_string($msg, 'INFO');
 	}
 
-
+	// Log using WARNING level
 	public function warning($msg) {
 		$this->log_string($msg, 'WARNING');
 	}
 
-
+	// Log using ERROR level
 	public function error($msg) {
 		$this->log_string($msg, 'ERROR');
 	}
 
-
+	// formats message and logs to file using a level indicator, if the indicated log level is more important than the minimum log level set during initialisation
 	private function log_string($msg, $level) {
 
 		if (!$this->is_active) {
@@ -102,7 +96,5 @@ class Logger {
 		$time = '['.gmdate('d.m.y H:i:s').' UTC]';
 		file_put_contents($this->log, $time.$level." ".$msg."\n", FILE_APPEND);
 	}
-
-
 }
 ?>

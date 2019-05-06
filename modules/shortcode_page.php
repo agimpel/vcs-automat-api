@@ -1,11 +1,9 @@
 <?php
 
-
 // prevent this file from being executed directly
 defined('ABSPATH') or die();
 
-
-
+// This class displays the public frontend to the Automat API, use shortcode vcs-automat to invoke this page
 class Shortcode_Page extends VCS_Automat {
 
     // the instance of this class
@@ -44,7 +42,6 @@ class Shortcode_Page extends VCS_Automat {
 	// stores messages to display to user
 	private $messageboxes = array();
 
-
     // constructor necessary to override the parent class constructor
     public function __construct() {
 		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/logger.php');
@@ -52,8 +49,7 @@ class Shortcode_Page extends VCS_Automat {
 		$this->logger->setup('wordpress', 'INFO');
     }
 
-
-
+    // handles the subpage by determining which content to display based on the GET flag of the request
     public function vcs_automat() {
 
 		// check if frontend is activated, show error notice if not
@@ -100,15 +96,14 @@ class Shortcode_Page extends VCS_Automat {
 		$this->show_html_home();
 	}
 
-
-
+    // returns the UID of the current user, i.e. the Wordpress login username
 	private function get_uid() {
 		$user = wp_get_current_user();
 		$uid = $user->user_login;
 		return $uid;
 	}
 
-
+    // reads the current user's data from the SQL database, if available and populates the userdata array of this class
 	private function prepare_userdata() {
 		$uid = $this->get_uid();
 		$this->userdata['uid'] = $uid;
@@ -130,7 +125,7 @@ class Shortcode_Page extends VCS_Automat {
 		return;
 	}
 
-
+    // reads the current reset information from the SQL database and populates the resetdata array of this class
 	private function prepare_resetdata() {
 		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/sql_interface.php');
 		$db = SQLhandler::instance();
@@ -147,8 +142,7 @@ class Shortcode_Page extends VCS_Automat {
 		return;
 	}
 
-
-
+    // sanitises the RFID of the current user by checking for length and non-numeric characters, then sets or updates the user's RFID in the SQL database
 	private function set_rfid($rfid) {
 
 		if(is_null($this->userdata['uid'])) {
@@ -190,13 +184,12 @@ class Shortcode_Page extends VCS_Automat {
 		return $result;
 	}
 
-
-
+    // stores a message to be displayed to the user upon the next page update, possible types: failure (red), info (yellow)
 	private function attach_message_box($type, $text) {
 		$this->messageboxes[] = array('type' => $type, 'text' => $text);
 	}
 
-
+    // prints previously saved messages to the user. Color is determined by the message's type attribute
 	private function print_message_boxes() {
 		foreach ($this->messageboxes as $message) { ?>
 			<div class="vcs_automat-messagebox vcs_automat-messagebox-<?php echo($message['type']); ?>">
@@ -211,7 +204,7 @@ class Shortcode_Page extends VCS_Automat {
 		<?php }
 	}
 
-
+    // prints $singular if $amount is 1, $plural otherwise to allow text to be correctly specified
 	private function singular_plural_format($amount, $singular, $plural) {
 		if((int) $amount == 1) {
 			echo($singular);
@@ -222,12 +215,9 @@ class Shortcode_Page extends VCS_Automat {
 
 
 
-
-
 	//
 	// SHOW_HTML_FUNCTIONS
 	//
-
 
 	// shared navigation header of all subpages
 	private function show_html_generic_header($title) {
@@ -238,7 +228,6 @@ class Shortcode_Page extends VCS_Automat {
 		<?php
 	}
 
-
 	// deactivated page: shown if the frontend is deactivated via the plugin settings
 	private function show_html_deactivated() {
 		?>
@@ -248,7 +237,6 @@ class Shortcode_Page extends VCS_Automat {
 
 		<?php
 	}
-
 
 	// landing page: default with no/unknown GET parameter
 	private function show_html_home() {
@@ -291,6 +279,7 @@ class Shortcode_Page extends VCS_Automat {
 		<?php
 	}
 
+    // stats page: triggered if $_GET['page'] == 'stats'
 	private function show_html_stats() {
 		$this->print_message_boxes();
 		$this->show_html_generic_header('Statistiken');
@@ -341,7 +330,6 @@ class Shortcode_Page extends VCS_Automat {
 		</div>
 		<?php 
 	}
-
 
 	// settings page: limited to logged-in users, triggered if $_GET['page'] == 'settings'
 	private function show_html_settings() {
@@ -397,7 +385,6 @@ class Shortcode_Page extends VCS_Automat {
 		</div>
 		<?php 
 	}
-
 
 	// notloggedin page: shown if the settings page is accessed, but the user is not logged in
 	private function show_html_notloggedin() {

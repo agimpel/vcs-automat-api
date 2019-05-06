@@ -1,6 +1,5 @@
 <?php
 
-
 // prevent this file from being executed directly
 defined('ABSPATH') or die();
 
@@ -197,7 +196,7 @@ class HTTP_Agent {
         }
     }
 
-
+    // performs the validation of the nonce of a request. The nonce is stored in the body of the request and thus affects its signature. This prevents replay attacks. Used nonces are stored in local database.
     private function verify_nonce() {
         if (is_null($this->nonce)) {
             // request does not have a nonce, dismiss
@@ -220,16 +219,10 @@ class HTTP_Agent {
             $this->logger->info('Dismissing request, as provided nonce was already known.');
             return false;
         } else {
-            // none is new, go ahead
+            // nonce is new, go ahead
             $this->logger->debug('Nonce verification successful.');
             return true;
         }
     }
-
-
-
 }
-
-
-
 ?>

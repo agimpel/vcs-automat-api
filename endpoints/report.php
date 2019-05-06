@@ -1,6 +1,6 @@
 <?php
 
-define('ABSPATH', 1);
+define('ABSPATH', 1); // required so that other scripts are not killed
 
 // set up logging file and logging function
 require_once('../modules/logger.php');
@@ -64,5 +64,4 @@ if ($db_result == False) {
 	$response->send_response(200); //200: OK
 	exit(); // Execution stops here
 }
-
 ?>

@@ -1,11 +1,9 @@
 <?php
 
-
 // prevent this file from being executed directly
 defined('ABSPATH') or die();
 
-
-
+// This class displays the Wordpress settings page in the Admin panel and handles all settings done therein
 class Plugin_Options extends VCS_Automat {
 
 	// the instance of this class
@@ -67,7 +65,6 @@ class Plugin_Options extends VCS_Automat {
 			'description' => 'Neue RFID des bestehenden Benutzers.')
 	);
 
-
 	// constructor empty to override the parent class constructor
 	public function __construct() {
 
@@ -77,15 +74,14 @@ class Plugin_Options extends VCS_Automat {
 		$this->logger->setup('wordpress', 'INFO');
 	}
 
-
+	// sets up the settings page, its subpages and actions
 	public function main() {
 		add_menu_page('Einstellungen für den VCS-Automat', 'VCS-Automat', 'manage_options', 'vcs-automat', array($this, 'generate_html'), "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+PHN2ZyAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIiAgIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyIgICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgICB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiICAgd2lkdGg9IjI0IiAgIGhlaWdodD0iMjQiICAgdmlld0JveD0iMCAwIDI0IDI0IiAgIHZlcnNpb249IjEuMSIgICBpZD0ic3ZnNCIgICBzb2RpcG9kaTpkb2NuYW1lPSJpY29ubW9uc3RyLWJlZXItNC5zdmciICAgaW5rc2NhcGU6dmVyc2lvbj0iMC45Mi4zICh1bmtub3duKSI+ICA8bWV0YWRhdGEgICAgIGlkPSJtZXRhZGF0YTEwIj4gICAgPHJkZjpSREY+ICAgICAgPGNjOldvcmsgICAgICAgICByZGY6YWJvdXQ9IiI+ICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4gICAgICAgIDxkYzp0eXBlICAgICAgICAgICByZGY6cmVzb3VyY2U9Imh0dHA6Ly9wdXJsLm9yZy9kYy9kY21pdHlwZS9TdGlsbEltYWdlIiAvPiAgICAgIDwvY2M6V29yaz4gICAgPC9yZGY6UkRGPiAgPC9tZXRhZGF0YT4gIDxkZWZzICAgICBpZD0iZGVmczgiIC8+ICA8c29kaXBvZGk6bmFtZWR2aWV3ICAgICBwYWdlY29sb3I9IiNmZmZmZmYiICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIgICAgIGJvcmRlcm9wYWNpdHk9IjEiICAgICBvYmplY3R0b2xlcmFuY2U9IjEwIiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAiICAgICBndWlkZXRvbGVyYW5jZT0iMTAiICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMCIgICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjE5MjAiICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSIxMDIyIiAgICAgaWQ9Im5hbWVkdmlldzYiICAgICBzaG93Z3JpZD0iZmFsc2UiICAgICBpbmtzY2FwZTp6b29tPSI5LjgzMzMzMzMiICAgICBpbmtzY2FwZTpjeD0iMTIuMzA1MDg1IiAgICAgaW5rc2NhcGU6Y3k9IjEyIiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjAiICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMzAiICAgICBpbmtzY2FwZTp3aW5kb3ctbWF4aW1pemVkPSIxIiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ic3ZnNCIgLz4gIDxwYXRoICAgICBkPSJNMjMgMTIuNDUyYzAgMi41MzktMS43OTEgNS43NS01IDYuOTYzdi0yLjE2YzMuMTU0LTEuODMgMy45NjktNi4yNTUgMS41NTMtNi4yNTVoLTEuNTUzdi0yaDEuOTEyYzIuMTQ0IDAgMy4wODggMS41MzQgMy4wODggMy40NTJ6bS01IDkuOTc1djEuNTczaC0xNnYtMS41NzNjLjY2NCAwIDEtLjUzOSAxLTEuMjAzdi0xMi44MTdjLTEuMTgxLS41NjktMi0xLjc1NC0yLTMuMTUgMC0yLjI1NyAyLjA4NC0zLjg0MyA0LjIzOC0zLjUwMSAxLjA0Ny0uOTM1IDIuNTAyLTEuMjE0IDMuNzk1LS43OTIuODAxLS42NDIgMS42MTEtLjk2NCAyLjU4Mi0uOTY0IDEuNTE4IDAgMi45NzEuNzY1IDMuNzM4IDEuODM0IDEuODQ4LjEwNCAzLjMyIDEuNjQxIDMuMzIgMy41MTUgMCAxLjM0MS0uNTY3IDIuNTEtMS42NzQgMy4xMDR2MTIuNzcyYy4wMDEuNjYzLjMzNyAxLjIwMiAxLjAwMSAxLjIwMnptLTExLTExLjQyN2MwLS41NTItLjQ0Ny0xLTEtMXMtMSAuNDQ4LTEgMXY4YzAgLjU1Mi40NDcgMSAxIDFzMS0uNDQ4IDEtMXYtOHptNCAwYzAtLjU1Mi0uNDQ3LTEtMS0xcy0xIC40NDgtMSAxdjhjMCAuNTUyLjQ0NyAxIDEgMXMxLS40NDggMS0xdi04em00IDBjMC0uNTUyLS40NDctMS0xLTFzLTEgLjQ0OC0xIDF2OGMwIC41NTIuNDQ3IDEgMSAxczEtLjQ0OCAxLTF2LTh6bTIuMDk4LTUuNjUxYzAtMS4wNzQtLjg3MS0xLjk0NC0xLjk0NC0xLjk0NC0uMjQzIDAtLjQ3Ni4wNDUtLjY4OS4xMjYtLjM2NS0xLjEzNC0xLjQyOS0xLjk1NS0yLjY4NS0xLjk1NS0xLjAyMSAwLTEuOTE4LjU0NC0yLjQxMiAxLjM1OS0uNDEtLjM2NS0uOTUtLjU4Ni0xLjU0MS0uNTg2LS45MDEgMC0xLjY4Mi41MTUtMi4wNjUgMS4yNjYtLjMwOC0uMjA2LS42NzgtLjMyNi0xLjA3Ni0uMzI2LTIuNzkgMC0yLjc1NiAzLjg4OSAwIDMuODg5LjY0NyAwIDEuMjIxLS4zMTcgMS41NzQtLjgwNC40MTIuMzc5Ljk2My42MTEgMS41NjcuNjExLjcwNiAwIDEuMzM3LS4zMTUgMS43NjMtLjgxMy41MTcuNjM3IDEuMzA2IDEuMDQ1IDIuMTg5IDEuMDQ1LjcwMSAwIDEuMzQyLS4yNTYgMS44MzYtLjY3OS4zNTUuNDYuOTEyLjc1NiAxLjUzOC43NTYgMS4wNzQtLjAwMSAxLjk0NS0uODcyIDEuOTQ1LTEuOTQ1eiIgICAgIGlkPSJwYXRoMiIgICAgIHN0eWxlPSJmaWxsOiNmZmZmZmYiIC8+PC9zdmc+");
 		add_action('admin_init', array($this, 'admin_initialise'));
-
 		add_submenu_page('vcs-automat', 'Änderung der RFID in der Datenbank', 'RFID ändern', 'manage_options', 'vcs_automat_rfid', array($this, 'generate_html_rfid'));
 	}
 
-
+	// returns the default options of this plugin
 	public function default_options() {
 		$array = array();
 		foreach ($this->settings_array as $key => $value) {
@@ -94,21 +90,21 @@ class Plugin_Options extends VCS_Automat {
 		return $array;
 	  }
 	   
-
-	  public function get_options() {
-			$options = get_option('vcs_automat_options', $this->default_options());
-			$this->update_sql_settings($options);
-			return $options;
-	  }
+	// returns the current options of this plugin
+	public function get_options() {
+		$options = get_option('vcs_automat_options', $this->default_options());
+		$this->update_sql_settings($options);
+		return $options;
+	}
 	   
-
+	// updates the current options by saving them to the SQL database
 	private function update_sql_settings($options) {
 		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/sql_interface.php');
 		$db = SQLhandler::instance();
 		$db_result = $db->set_settings($options, $this->settings_array);
 	}
 
-
+	// handles the manual RFID update by changing the user's RFID in the database
 	private function update_sql_rfidchange($options) {
 		$uid = $options['vcs_automat_nethz'];
 		$rfid = $options['vcs_automat_rfid'];
@@ -117,7 +113,7 @@ class Plugin_Options extends VCS_Automat {
 		$db_result = $db->change_rfid($uid, $rfid);
 	}
 
-
+	// sets up the settings panel by initialising the settings
 	public function admin_initialise() {
 		register_setting('vcs_automat_options_group', 'vcs_automat_options', array(
 			'type' => 'array', 
@@ -132,7 +128,7 @@ class Plugin_Options extends VCS_Automat {
 		);
 	}
 
-
+	// checks the settings for validity based on datatype to ensure sanitised database inputs, either returns valid settings as array or prints error message to user
 	public function sanitize_options($input) {
 
 		$output = $this->get_options();
@@ -141,7 +137,6 @@ class Plugin_Options extends VCS_Automat {
 			return $output;
 		}
 		
-	
 		foreach ($this->settings_array as $key => $fields) {
 
 			if (isset($input[$key])) {
@@ -183,12 +178,9 @@ class Plugin_Options extends VCS_Automat {
 		}
 		$this->update_sql_settings($output);
 		return $output;
-	  }
+	}
 	 
-	  
-
-
-
+	// generates the HTML used for displaying the settings page
 	public function generate_html() {
 		  
 		if (!current_user_can('manage_options')) {
@@ -281,8 +273,7 @@ class Plugin_Options extends VCS_Automat {
 		<?php
 	}
 
-
-
+	// reads the data corresponding to last and upcoming credit resets by querying the database
 	private function get_resetdata() {
 		require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/sql_interface.php');
 		$db = SQLhandler::instance();
@@ -294,9 +285,7 @@ class Plugin_Options extends VCS_Automat {
 		return $result;
 	}
 
-
-
-
+	// sanitizes the username and RFID used for updating a user's RFID in the database, then invokes the update in the SQL database
 	public function sanitize_rfidchange($input) {
 
 		if(!is_array($input) || empty($input) || (false === $input)) {
@@ -336,8 +325,7 @@ class Plugin_Options extends VCS_Automat {
 		return $output;
 	  }
 
-
-
+	// generates the HTML used to display the subpage for the RFID change
 	public function generate_html_rfid() {
 				  
 		if (!current_user_can('manage_options')) {
@@ -388,13 +376,6 @@ class Plugin_Options extends VCS_Automat {
 		</form>
 		</div>
 		<?php
-
-
-
 	}
-
 }
-
-
-
 ?>

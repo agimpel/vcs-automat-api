@@ -1,11 +1,9 @@
 <?php
 
-
 // prevent this file from being executed directly
 defined('ABSPATH') or die();
 
-
-
+// This class handles all queries to the SQL database of this plugin
 class SQLhandler {
 
 	// the instance of this class
@@ -19,7 +17,6 @@ class SQLhandler {
 		return self::$_instance;
 	}
 
-	
 	private $SQLconn;
 	private $users_table = "users";
 	private $archive_table = "archive";
@@ -28,8 +25,7 @@ class SQLhandler {
 	private $logger = null;
 	private $is_active = false;
 
-	
-
+	// set up logging, configs and connection to the SQL database
 	public function __construct() {
 		if (defined('VCS_AUTOMAT_PLUGIN_DIR')) {
 			require_once(VCS_AUTOMAT_PLUGIN_DIR . '/modules/logger.php');
@@ -67,11 +63,12 @@ class SQLhandler {
 		}
 	}
 
+	// close the connection to the SQL database if the plugin is closed
 	public function __destruct() {
 		$this->SQLconn->close();
 	}
 
-
+	// checks whether a connection to the SQL database is established, returns boolean accordingly
 	private function connection_ready() {
 		if ($this->is_active == false) {
 			$this->logger->error("SQL function was called, but connection was not established.");
@@ -80,7 +77,7 @@ class SQLhandler {
 		return True;
 	}
 
-
+	// returns UID and credits of RFID $rfid if available in database, returns False otherwise
 	public function search_rfid($rfid) {
 		if (!$this->connection_ready()) return false;
 		$to_fetch = array('uid','credits','rfid');
@@ -94,7 +91,7 @@ class SQLhandler {
 		}
 	}
 
-
+	// returns credits and rfid of UID $uid if available in database, returns False otherwise
 	public function search_uid($uid) {
 		if (!$this->connection_ready()) return false;
 		$to_fetch = array('uid','credits','rfid');
@@ -108,7 +105,7 @@ class SQLhandler {
 		}
 	}
 
-
+	// adds a user identified by $uid with $rfid and $credits to the database, returns True on success or False if an error occurred
 	public function add_user($uid, $credits, $rfid) {
 		if (!$this->connection_ready()) return false;
 		$target_columns = array('uid', 'credits', 'rfid');
@@ -126,7 +123,7 @@ class SQLhandler {
 		}
 	}
 
-
+	// changes the rfid of the user identified by $uid to $new_rfid in the database, returns True on success or False otherwise
 	public function change_rfid($uid, $new_rfid) {
 		if (!$this->connection_ready()) return false;
 		$uid = $this->SQLconn->escape_string($uid);
@@ -140,7 +137,7 @@ class SQLhandler {
 		}
 	}
 
-
+	// removes a user identified by $uid from the database, returns True on success or False otherwise
 	public function delete_user($uid) {
 		if (!$this->connection_ready()) return false;
 		$uid = $this->SQLconn->escape_string($uid);
@@ -150,11 +147,10 @@ class SQLhandler {
 			$this->logger->error('Could not delete a user from the users table. uid = '.$uid);
 			return False;
 		}
-
 		return True;
 	}
 
-
+	// sets and updates the settings defined by $settings_array to the new values in $new_settings by updating the entries in the database
 	public function set_settings($new_settings, $settings_array) {
 		if (!$this->connection_ready()) return false;
 		foreach ($settings_array as $key => $fields) {
@@ -173,8 +169,7 @@ class SQLhandler {
 		}
 	}
 
-
-
+	// decrements the amount of credits available to the user identified by $rfid in the database. Prints an error if the user is unknown or no credits were available.
 	public function report_rfid($rfid) {
 		if (!$this->connection_ready()) return false;
 		$to_fetch = array('uid','credits','rfid');
@@ -204,7 +199,7 @@ class SQLhandler {
 		}
 	}
 
-
+	// creates an archive entry for the vend of a beverage using the slot used and the time of sale (both human readable and in unix format)
 	public function archive_usage($slot, $time) {
 		if (!$this->connection_ready()) return false;
 		$target_columns = array('slot', 'unixtime', 'time');
@@ -222,7 +217,7 @@ class SQLhandler {
 		}
 	}
 
-
+	// reads all archive data from the database and returns them on success as an array, False otherwise
 	public function get_archive_data() {
 		if (!$this->connection_ready()) return false;
 		$to_fetch = array('unixtime', 'time', 'slot');
@@ -235,7 +230,7 @@ class SQLhandler {
 		}
 	}
 
-
+	// checks if the string $nonce is already in the database. If so, returns False as the nonce was used before, returns True otherwise.
 	public function verify_nonce($nonce) {
 		if (!$this->connection_ready()) return false;
 		$nonce = $this->SQLconn->real_escape_string($nonce);
@@ -254,7 +249,7 @@ class SQLhandler {
 		}
 	}
 
-
+	// returns the setting defined by the identifier $key as found in the database. Returns null if the key is unknown or the setting is not set.
 	public function get_setting($key) {
 		if (!$this->connection_ready()) return null;
 		$key = $this->SQLconn->real_escape_string($key);
@@ -268,10 +263,5 @@ class SQLhandler {
 			return $value['value'];
 		}
 	}
-
-
 }
-
-
-
 ?>
