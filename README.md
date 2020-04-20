@@ -2,7 +2,7 @@
 
 #### Install necessary packages
 ```bash
-sudo apt-get install php-mysqli python3 python3-matplotlib python3-mysql.connector python3-numpy
+sudo apt-get install php-mysqli python3 python3-matplotlib python3-mysql.connector python3-numpy curl php-curl
 ```
 
 
