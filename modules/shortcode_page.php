@@ -63,19 +63,19 @@ class Shortcode_Page extends VCS_Automat {
 		}
 
 		// display page with information about the telegram bot
-		if(isset($_GET['page']) && $_GET['page'] == 'telegrambot') {
+		if(isset($_GET['view']) && $_GET['view'] == 'telegrambot') {
 			$this->show_html_telegrambot();
 			return;
 		}
 
 		// display page with cumulative and individual statistics
-		if(isset($_GET['page']) && $_GET['page'] == 'stats') {
+		if(isset($_GET['view']) && $_GET['view'] == 'stats') {
 			$this->show_html_stats();
 			return;
 		}
 
 		// display page with settings, this page is restricted to logged-in users affiliated with VCS
-		if(isset($_GET['page']) && $_GET['page'] == 'settings') {
+		if(isset($_GET['view']) && $_GET['view'] == 'settings') {
 			if(!is_user_logged_in()) {
 				$this->logger->debug('User is not logged in, show login notice page.');
 				$this->show_html_notloggedin();
@@ -260,17 +260,17 @@ class Shortcode_Page extends VCS_Automat {
 		<br>
 		<?php } ?>
 		<br>
-		<div class="vcs_automat-menuentrywrap" onclick="javascript:location.href='<?php echo(add_query_arg('page', 'settings', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH))); ?>'">
+		<div class="vcs_automat-menuentrywrap" onclick="javascript:location.href='<?php echo(add_query_arg('view', 'settings', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH))); ?>'">
 		<span class="vcs_automat-menuentryicon"><span class="dashicons dashicons-admin-generic"></span></span>
 			<span class="vcs_automat-menuentrytext">Registrierung</span>
 		</div>
 		<br>
-		<div class="vcs_automat-menuentrywrap" onclick="javascript:location.href='<?php echo(add_query_arg('page', 'stats', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH))); ?>'">
+		<div class="vcs_automat-menuentrywrap" onclick="javascript:location.href='<?php echo(add_query_arg('view', 'stats', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH))); ?>'">
 			<span class="vcs_automat-menuentryicon"><span class="dashicons dashicons-chart-line"></span></span>
 			<span class="vcs_automat-menuentrytext">Statistiken</span>
 		</div>
 		<br>
-		<div class="vcs_automat-menuentrywrap" onclick="javascript:location.href='<?php echo(add_query_arg('page', 'telegrambot', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH))); ?>'">
+		<div class="vcs_automat-menuentrywrap" onclick="javascript:location.href='<?php echo(add_query_arg('view', 'telegrambot', parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH))); ?>'">
 			<span class="vcs_automat-menuentryicon"><span class="dashicons dashicons-testimonial"></span></span>
 			<span class="vcs_automat-menuentrytext">Infos zum Telegram-Bot</span>
 		</div>
@@ -279,7 +279,7 @@ class Shortcode_Page extends VCS_Automat {
 		<?php
 	}
 
-    // stats page: triggered if $_GET['page'] == 'stats'
+    // stats page: triggered if $_GET['view'] == 'stats'
 	private function show_html_stats() {
 		$this->print_message_boxes();
 		$this->show_html_generic_header('Statistiken');
@@ -331,7 +331,7 @@ class Shortcode_Page extends VCS_Automat {
 		<?php 
 	}
 
-	// settings page: limited to logged-in users, triggered if $_GET['page'] == 'settings'
+	// settings page: limited to logged-in users, triggered if $_GET['view'] == 'settings'
 	private function show_html_settings() {
 
 		// check if necessary data is available
@@ -406,7 +406,7 @@ class Shortcode_Page extends VCS_Automat {
 		<?php
 	}
 
-	// telegrambot page: triggered if $_GET['page'] == 'telegrambot'
+	// telegrambot page: triggered if $_GET['view'] == 'telegrambot'
 	private function show_html_telegrambot() {
 		$this->print_message_boxes();
 		$this->show_html_generic_header('Telegram-Bot');
